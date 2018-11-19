@@ -1,11 +1,11 @@
 <?php
 if (!empty($_SESSION['uid'])) {
     $session_uid = $_SESSION['uid'];
-    include ('clase/ClaseUsuario.php');
+    include ('clases/claseusuario.php');
     $userClass = new userClass();
 }
 if (empty($session_uid)) {
-    $url = 'home.php';
+    $url = '../home.php';
     header("Location: $url");
 }
 ?>

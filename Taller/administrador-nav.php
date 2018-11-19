@@ -1,4 +1,4 @@
-<li class="header nav-small-cap">Administracion</li>
+<li class="divider header nav-small-cap">Administracion</li>
 	<li class="treeview active">
     <a href="#" data-toggle="modal" data-target="#nuevo-servicio">
       <i class="fa fa-bars"></i>

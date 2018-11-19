@@ -1,4 +1,4 @@
-<li class="header nav-small-cap">TALLER</li>
+<li class="divider header nav-small-cap">Taller</li>
 	<li class="treeview active">
     <a href="#" data-toggle="modal" data-target="#nuevo-turno">
       <i class="fa fa-bars"></i>
@@ -7,8 +7,9 @@
       </span>
     </a>
   </li>
+  <li>
       <li class="treeview active ">
-        <a href="#" data-toggle="modal" data-target="#editar-taller">
+        <a href="#" data-toggle="modal" onclick="cargarserviciostaller()" data-target="#editar-taller">
           <i class="fa fa-pencil"></i>
           <span>Editar Taller</span>
           </span> 

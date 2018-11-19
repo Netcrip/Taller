@@ -18,6 +18,7 @@
             if (strlen(trim($usernameEmail)) > 1 && strlen(trim($password)) > 1) {
                 $uid = $userClass->userLogin($usernameEmail, $password);
                 if ($uid) {
+                    $userClass->userDetails($uid);
                     $url = 'taller/index.php';
                     header("Location: $url"); // Page redirecting to home.php
                     

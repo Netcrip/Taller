@@ -66,15 +66,17 @@ class userClass
     {
         try {
             $db   = getDB();
-            $stmt = $db->prepare("SELECT nombre name FROM usuarios WHERE uid=:uid");
+            $stmt = $db->prepare("call uspPermisos(:uid)");
             $stmt->bindParam("uid", $uid, PDO::PARAM_INT);
             $stmt->execute();
-            $data = $stmt->fetch(PDO::FETCH_OBJ); //User data
+            $data  = $stmt->fetchall(PDO::FETCH_COLUMN, 0);
+            $db    = null;
             return $data;
-        }
+        }   
         catch (PDOException $e) {
             echo '{"error":{"text":' . $e->getMessage() . '}}';
         }
     }
+    
 }
 ?>
