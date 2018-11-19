@@ -55,8 +55,7 @@
   </section>
 </div>
 
-<section>
-  
+<!----------------modal--------------------> 
 
   <div class="modal center-modal fade" id="asignar-turno" tabindex="-1" style="display: block;">
     <div class="modal-dialog">
@@ -252,4 +251,53 @@
     </div>
   </div>
 
-</section>
+<div class="modal center-modal fade" id="ver-orden" tabindex="-1" style="display: block;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editarordenestitulo">Ver Orden</h5>
+          <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="col-md-12 col-12">
+          <label for="">Ver orden: </label>
+           <h5 id="verdennumero"> NNN</h5>
+            <form id="formeditarturno" >
+              <div class="form-group">
+                <label for="verdominioeditarorden">Dominio:</label>
+                <input type="text" id="verdominioeditarorden"class="form-control" disabled > 
+              </div>
+              <label>Seleccion de servicio</label>
+              <div clase="form-check form-check-inline nuevo-turnoscroll" id="verturnochek" >
+                  <?php
+                  $sth=$tablas->gettablaservicio();
+                  $thservicio= $sth->fetchAll();
+                  if($sth->rowCount()):
+                    foreach($thservicio as $row){ ?>  
+                    <input class="form-check-input col-4" type="checkbox" disabled name="checkserviciover" id='ver<?php echo $row['codserv']; ?>' value='<?php echo $row['codserv']; ?>'> 
+                    <label class="form-check-label col-6" for="ver<?php echo $row['codserv']; ?>"><?php echo $row['nombre']; ?></label><br>                       
+                    <?php }  ?>
+                  <?php endif;  ?>
+              </div>
+            
+              <div class="form-group">
+                <input class="form-control" disabled type="date" id="verordenfecha">
+                <input class="form-control" disabled type="time" id="verordenhorario"  >
+              </div>
+              <div class="form-group"> 
+                <label for="verturnoobservacion">Observaciones</label>
+                <input class="form-control" disabled id="verturnoobservacion"type="text">
+              </div>
+            </form>
+          </div>
+
+        </div>
+          <div class="modal-footer modal-footer-uniform">
+          <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" id="btnguardarturnomodificado" class="btn btn-bold btn-pure btn-primary float-right" disabled>Modificar</button>
+        </div>
+      </div>
+    </div>
+  </div>

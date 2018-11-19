@@ -5,9 +5,14 @@ jQuery(document).ready(function()
     m=d.getUTCMonth()+1
     $fecha=d.getDate()+'/'+m+'/'+d.getFullYear()
     $("#fechaparaordenes").val($fecha.split("/").reverse().join("-"))
-
+    //--taller
     cargarordenesdeservicio();
     cargarsolicitud();
+    cargarordenescliente();
+    //----cliente
+    getdatosactualautocliente();
+    getclienteproximoservicio();
+    
     $('#serviciocheckorden').slimScroll({
       height: '150px'
     });
@@ -211,7 +216,7 @@ jQuery(document).ready(function()
         $.ajax({
           url: "../clases/tabla.php",
           method: "GET",
-          async: true,
+          async: false,
           data: {funcion: "setordendeservicio",tid:$tid,dominio:$dominio,fecha:$fecha,select:select,horario:$horario,obs:$obs},
           success: function(result) {
             if(result){
@@ -292,13 +297,15 @@ function getsesion(){
 
 }
 
+
+
 function cargarordenesdeservicio(){
   $fecha=$("#fechaparaordenes").val();
   $tid=0;
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: true,
+    async: false,
     data: {funcion: "gettablaordenes",fecha:$fecha,tid:$tid},
     dataType: "json",
     success: function(respuesta) {
@@ -309,7 +316,12 @@ function cargarordenesdeservicio(){
       if(respuesta != null && $.isArray(respuesta)){
         $('#tordenesbody').html("");      
             $.each(respuesta, function(index, value){ 
-                $("#tordenesbody").append("<tr><td>" + value.oid + "</td><td>" + value.dominio + "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.horario +'</td><td class="d-none sm-block ">'+value.nombre+'</td><td> <a href="#" data-toggle="modal" data-target="#editar-orden" onclick="cargareditarorden('+value.oid+','+value.tipo+')"> <span class="label bg-green"><i class="fa fa-pencil"></i></span></a><a href="#" onclick=eliminarorden('+value.oid+','+value.tipo+')> <span class="label label-danger"><i class="fa fa-ban"></i></span></a></td></tr>');
+               if(value.estado==2){
+                $("#tordenesbody").append("<tr class='bg-green'><td>" + value.oid + "</td><td>" + value.dominio + "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.horario +'</td><td class="d-none sm-block ">'+value.nombre+'</td><td> <a href="#" data-toggle="modal" data-target="#ver-orden" onclick="verdetalleorden('+value.oid+','+value.tipo+')"> <span class="label bg-info"><i class="fa fa-eye"></i></span></a><a href="#" onclick=eliminarorden('+value.oid+','+value.tipo+')> <span class="label label-danger"><i class="fa fa-ban"></i></span></a></td></tr>');
+               }
+               else{
+                $("#tordenesbody").append("<tr><td>" + value.oid + "</td><td>" + value.dominio + "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.horario +'</td><td class="d-none sm-block ">'+value.nombre+'</td><td> <a href="#" data-toggle="modal" data-target="#editar-orden" onclick="cargareditarorden('+value.oid+','+value.tipo+')"> <span class="label bg-green"><i class="fa fa-pencil"></i></span></a><a href="#" onclick=eliminarorden('+value.oid+','+value.tipo+')> <span class="label label-danger"><i class="fa fa-ban"></i></span><a href="#" onclick=cumplimentarorden('+value.oid+','+value.tipo+','+value.vid+')> <span class="label label-info"><i class="fa fa-check"></a></td></tr>');
+               }
             });
           
             $('#tordenes').DataTable( {
@@ -331,14 +343,12 @@ function cargarordenesdeservicio(){
 }
 
 
-
-
 function cargarsolicitud(){
-  $tid=0;
+  var $tid =tengotaller();
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: true,
+    async: false,
     data: {funcion: "gettablaservicio",tid:$tid},
     dataType: "json",
     success: function(respuesta) {
@@ -387,8 +397,7 @@ function cargareditarorden($oid,$t){
     async: false,
     data: {funcion: "cargareditarorden",buscar:$buscar},
     dataType: "json",
-    success: function(respuesta) { 
-      console.log("salio");      
+    success: function(respuesta) {      
         if(respuesta != null && $.isArray(respuesta)){
             $("#modificarturnochek").find('input:checkbox').removeAttr('checked');
             $.each(respuesta, function(index, value){               
@@ -405,6 +414,62 @@ function cargareditarorden($oid,$t){
   });
 }
 
+function verdetalleorden($oid,$t){
+  if($t==1){
+    $buscar="select `ordenes-detalle`.oid, servicios.nombre, vehiculos.dominio,`ordenes-detalle`.observacion,  ordenes.fecha, ordenes.horario, codser as codserv from `ordenes-detalle` inner join ordenes on `ordenes-detalle`.oid = ordenes.oid inner join vehiculos on vehiculos.vid = ordenes.vid inner join servicios on servicios.codserv = `ordenes-detalle`.codser where `ordenes-detalle`.estado!=0 and ordenes.estado!=0 and  ordenes.oid="+$oid
+    $("#editarordenestitulo").text("Edicion de orden generada por solicitud")
+  }
+  else{
+    $buscar='select ordenentaller.otid as oid, `ordenentaller-detalle`.codserv,`ordenentaller-detalle`.observacion, servicios.nombre, ordenentaller.fecha, ordenentaller.horario, ordenentaller.dominio from `ordenentaller-detalle` inner join  ordenentaller on ordenentaller.otid =`ordenentaller-detalle`.otid inner join servicios on servicios.codserv=`ordenentaller-detalle`.codserv where ordenentaller.estado!=0 and `ordenentaller-detalle`.estado!=0 and ordenentaller.otid='+$oid
+   $("#editarordenestitulo").text("Edicion de orden generada en taller")
+  }
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "cargareditarorden",buscar:$buscar},
+    dataType: "json",
+    success: function(respuesta) {     
+        if(respuesta != null && $.isArray(respuesta)){
+            $("#verturnochek").find('input:checkbox').removeAttr('checked');
+            $.each(respuesta, function(index, value){               
+              $("#verturnochek").find("input:checkbox[value="+value.codserv+"]").attr("checked", true);
+            });
+          $("#verdominioeditarorden").val(respuesta[0].dominio);
+          $("#verordenfecha").val(respuesta[0].fecha.split("/").reverse().join("-"));
+          $("#verordenhorario").val(respuesta[0].horario);
+          $("#verturnoobservacion").val(respuesta[0].observacion);
+          $("#verdennumero").text(respuesta[0].oid);
+        }
+        
+      }
+  });
+}
+
+function verdetalleordenclieten($oid){
+  $buscar="select `ordenes-detalle`.oid, servicios.nombre, vehiculos.dominio,`ordenes-detalle`.observacion,  ordenes.fecha, ordenes.horario, codser as codserv from `ordenes-detalle` inner join ordenes on `ordenes-detalle`.oid = ordenes.oid inner join vehiculos on vehiculos.vid = ordenes.vid inner join servicios on servicios.codserv = `ordenes-detalle`.codser where `ordenes-detalle`.estado!=0 and ordenes.estado!=0 and  ordenes.oid="+$oid 
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "cargareditarorden",buscar:$buscar},
+    dataType: "json",
+    success: function(respuesta) {     
+        if(respuesta != null && $.isArray(respuesta)){
+            $("#verturnochekcliente").find('input:checkbox').removeAttr('checked');
+            $.each(respuesta, function(index, value){               
+              $("#verturnochekcliente").find("input:checkbox[value="+value.codserv+"]").attr("checked", true);
+            });
+          $("#verdominioeditarordencliente").val(respuesta[0].dominio);
+          $("#verordenfechacliente").val(respuesta[0].fecha.split("/").reverse().join("-"));
+          $("#verordenhorariocliente").val(respuesta[0].horario);
+          $("#verordenobservacioncliente").val(respuesta[0].observacion);
+          $("#vernumeroordencliente").text(respuesta[0].oid);
+        }
+        
+      }
+  });
+}
 function extrastabla(){
   $('.tablas').DataTable( {
     dom: 'Bfrtip',
@@ -438,7 +503,7 @@ function guardarturnoeditado(){
     $.ajax({
       url: "../clases/tabla.php",
       method: "GET",
-      async: true,
+      async: false,
       data: {funcion: "modificarturnoasignado",oid:$oid,t:$t,dominio:$dominio,fecha:$fecha,select:select,horario:$horario,obs:$obs},
       success: function(result) {
         console.log(result);
@@ -487,7 +552,7 @@ function eliminarorden($oid,$t){
       $.ajax({
         url: "../clases/tabla.php",
         method: "GET",
-        async: true,
+        async: false,
         data: {funcion: "eliminarorden", oid:$oid, t:$t},
         success: function(result) {
           if(result){
@@ -573,7 +638,7 @@ function asignarorden(){
     $.ajax({
       url: "../clases/tabla.php",
       method: "GET",
-      async: true,
+      async: false,
       data: {funcion: "asignarturno", sid:$sid, vid:$vid, tid:$tid, fecha:$fecha, hora:$hora, select:$select, observacion:$observacion},
       dataType: "json",
       success: function(respuesta) {  
@@ -631,7 +696,7 @@ function eliminarsolicitudservicio($sid){
 }
 
 function cargarserviciostaller(){
-  $tid=0;
+  var $tid =tengotaller();
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
@@ -655,8 +720,8 @@ function cargarserviciostaller(){
 }
 
 function btnmodificarserviciotaller(){
-  console.log("Si");
-  var $tid=0;
+
+  var $tid =tengotaller();
   var $select=[];
   $.each($("input[name='tallerservicioeditar']:checked"), function(){            
     $select.push($(this).val());
@@ -682,4 +747,229 @@ function btnmodificarserviciotaller(){
     }
   });
   $(".modal .close").click();
+}
+
+function tengotaller(){
+  var $tid;
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "tengotaller"},
+    dataType: "json",
+    success: function(respuesta) {     
+        if(respuesta){
+          $tid=respuesta[0].tid;
+        }
+    }
+  });
+  return $tid;
+}
+
+function cumplimentarorden($oid,$tipo,$vid){
+   $fecha=$("#fechaparaordenes").val();
+  swal({
+      title: "¿Orden finalizada?",
+      text: "¿Quiere dar por finalizada la Orden?",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+    .then((willDelete) => {
+      if (willDelete) {
+        if($tipo==1){
+          swal({
+            title:"Cumplimentar Orden",
+            text:"Ingrese el quilometraje",
+            content: "input",
+          }).then((value) => {
+            if($.isNumeric(value)){
+              $.ajax({
+                url: "../clases/tabla.php",
+                method: "GET",
+                async: false,
+                data: {funcion: "cumplimentarorden", oid:$oid,tipo:true, vid:$vid,km:value,fecha:$fecha},
+                dataType: "json",
+                success: function(respuesta) { 
+                  if(respuesta){
+                    cargarordenesdeservicio();
+                    swal({
+                      title:"Listo!",
+                      text:`Se dio por finalizada la orden y se cargaron los ${value} Km`, 
+                      icon: "success",
+                      
+                    });
+                  }
+                 
+                }
+              });   
+            }
+            else{
+              swal({
+                title:"Error!",
+                text:`El km debe de ser numerico`, 
+                icon: "error",
+                
+              });
+            }
+                    
+          });
+        }
+        else{
+          $.ajax({
+            url: "../clases/tabla.php",
+            method: "GET",
+            async: false,
+            data: {funcion: "cumplimentarorden",oid:$oid,tipo:$tipo,vid:"null",km:"null",fecha:"null"},
+            dataType: "json",
+            success: function(respuesta) {  
+              console.log("sdasd");
+              if(respuesta){
+                cargarordenesdeservicio();
+                swal({
+                  title:"Listo!",
+                  text:`Se dio por finalizada la orden`, 
+                  icon: "success",
+                  
+                });
+              }
+            }
+          });
+        }   
+      } 
+      else {
+        swal({   
+            title:"!Cancelado¡", 
+              icon: "error"
+        });
+      }
+    });
+}
+
+
+//cliente
+
+function getdatosactualautocliente(){
+$vid=1;
+$.ajax({
+  url: "../clases/tabla.php",
+  method: "GET",
+  async: false,
+  data: {funcion: "getkmydomautocliente",vid:$vid},
+  dataType: "json",
+  success: function(respuesta) {     
+      if(respuesta != null){
+          $("#dominioautocliente").text(respuesta[0].dominio);
+          $("#kmautocliente").text(respuesta[0].km);
+      }
+      
+    }
+});
+
+}
+
+function getclienteproximoservicio(){
+$vid=1;
+$.ajax({
+  url: "../clases/tabla.php",
+  method: "GET",
+  async: false,
+  data: {funcion: "getproximoserviciocliente",vid:$vid},
+  dataType: "json",
+  success: function(respuesta) {   
+    console.log(respuesta)
+      if(respuesta != null){
+        if(respuesta[0].servicio=="No registra proximo servicio"){
+          $("#proximoserviciocliente").text("No registra proximo servicio");
+        }
+        else {
+          if(new Date(respuesta[0].servicio).getTime()< new Date().getTime()){
+            $("#proximoserviciocliente").text("No registra proximo servicio");
+          }
+          else
+          {
+            $("#proximoserviciocliente").text(respuesta[0].servicio);
+          }
+          
+        }
+          
+      }
+      
+    }
+});
+}
+
+function proximoturnoscliente(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "proximoturnoscliente"},
+    dataType: "json",
+    success: function(respuesta) {
+      if ( $.fn.dataTable.isDataTable( '#proximosturnosclientetabla') ) {
+        table = $('#proximosturnosclientetabla').DataTable();
+        table.destroy();
+      }
+      if(respuesta != null){
+        $('#proximosturnosclientebody').html("");      
+            $.each(respuesta, function(index, value){ 
+              console.log("entro")
+                $("#proximosturnosclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td>'+value.servicios+'</td></tr>');
+            });
+          
+            $('#proximosturnosclientetabla').DataTable( {
+              dom: 'Bfrtip',
+              buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5',
+                  'pdfHtml5',
+                  'print'
+              ]
+              });
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+}
+
+function cargarordenescliente(){
+  $vid=1;
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "servicioauto",vid:$vid},
+    dataType: "json",
+    success: function(respuesta) {
+      if ( $.fn.dataTable.isDataTable( '#ordenescliente') ) {
+        table = $('#ordenescliente').DataTable();
+        table.destroy();
+      }
+      if(respuesta != null && $.isArray(respuesta)){
+        console.log(respuesta)
+        $('#ordenesclientebody').html("");      
+            $.each(respuesta, function(index, value){ 
+                $("#ordenesclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.taller+ "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.fecha +'</td><td>'+value.servicio+'</td><td >'+value.km+'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="verdetalleordenclieten('+value.oid+')"> <span class="label bg-info"><i class="fa fa-eye"></i></span></a></span></a></td></tr>');
+            });
+          
+            $('#ordenescliente').DataTable( {
+              dom: 'Bfrtip',
+              buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5',
+                  'pdfHtml5',
+                  'print'
+              ]
+              });
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
 }

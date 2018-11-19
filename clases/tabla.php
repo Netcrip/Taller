@@ -94,14 +94,14 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                 $db   = getDB();
                 $fecha=$_GET['fecha'];
                 $tid=$_GET['tid'];
-                $stmt = $db->prepare("select 1 as tipo, ordenes.oid, ordenes.vid, ordenes.tid, vehiculos.dominio, ordenes.horario, count(`ordenes-detalle`.codser) as nombre from  ordenes 
+                $stmt = $db->prepare("select 1 as tipo, ordenes.oid, ordenes.vid, ordenes.tid, vehiculos.dominio, ordenes.horario, ordenes.estado , count(`ordenes-detalle`.codser) as nombre from  ordenes 
                 inner join `ordenes-detalle` on `ordenes-detalle`.oid = ordenes.oid  
                 inner join servicios on `ordenes-detalle`.codser = servicios.codserv
                 inner join vehiculos on vehiculos.vid = ordenes.vid
                 where ordenes.estado!=0  and `ordenes-detalle`.estado!=0 and  fecha=:fecha and tid=:tid
                 group by dominio
                 union 
-                select 0 as tipo, ordenentaller.otid as oid, null as vid, null as tid,  ordenentaller.dominio, ordenentaller.horario, count(`ordenentaller-detalle`.codserv) as nombre from  ordenentaller 
+                select 0 as tipo, ordenentaller.otid as oid, null as vid, null as tid,  ordenentaller.dominio, ordenentaller.horario, ordenentaller.estado , count(`ordenentaller-detalle`.codserv) as nombre from  ordenentaller 
                 inner join `ordenentaller-detalle` on `ordenentaller-detalle`.otid = ordenentaller.otid  
                 inner join servicios on `ordenentaller-detalle`.codserv = servicios.codserv
                 where ordenentaller.estado!=0  and `ordenentaller-detalle`.estado!=0  and  fecha=:fecha  and tid=:tid
@@ -323,7 +323,7 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
             catch (PDOException $e) {
                 echo '{"error":{"text":' . $e->getMessage() . '}}';
              }
-            break;
+        break;
         case 'serviciostaller':
             try {
                 $tid=$_GET['tid'];
@@ -334,6 +334,139 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                 inner join talleres on `servicio-taller`.tid=talleres.tid
                 where `servicio-taller`.tid=:tid and `servicio-taller`.estado!=0");
                 $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'tengotaller':
+            try {
+                $uid=$_SESSION['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select `taller-usuario`.tid from `taller-usuario`
+                inner join talleres on talleres.tid=`taller-usuario`.tid 
+                where `taller-usuario`.uid=:uid");
+                $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'cumplimentarorden':
+            try {
+                $t=$_GET['tipo'];
+                $oid=$_GET['oid'];
+                $vid=$_GET['vid'];
+                $fecha=$_GET['fecha'];
+                $km=$_GET['km'];
+                $db   = getDB();
+                if($t=='true')               {
+                    $stmt = $db->prepare("update ordenes set estado=2 where oid=:oid");
+                    $stmt->bindParam("oid", $oid, PDO::PARAM_STR);
+                    $stmt->execute();    
+                    $stmt2 = $db->prepare("insert into kilometros (vid,fecha,km,oid) values (:vid,:fecha,:km,:oid)");
+                    $stmt2->bindParam("vid", $vid, PDO::PARAM_STR);
+                    $stmt2->bindParam("fecha", $fecha, PDO::PARAM_STR);
+                    $stmt2->bindParam("km", $km, PDO::PARAM_STR);
+                    $stmt2->bindParam("oid", $oid, PDO::PARAM_STR);
+                    if ($stmt2->execute()) { 
+                        // it worked
+                        $insertid="si";
+                    } 
+
+                }
+                else
+                {
+                    $stmt3 = $db->prepare("update ordenentaller set estado=2 where otid=:otid");
+                    $stmt3->bindParam("otid", $oid, PDO::PARAM_STR);
+                    if ($stmt3->execute()) { 
+                        // it worked
+                        $insertid="si";
+                    } 
+                }
+                              
+                if ($insertid=="si")
+                    echo true;
+                else
+                    echo false;  
+        
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'servicioauto':
+            try {
+                $vid=$_GET['vid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select ordenes.oid, talleres.nombre as taller, ordenes.fecha, count(`ordenes-detalle`.codser) as servicio, kilometros.km from ordenes
+                inner join `ordenes-detalle` on ordenes.oid=`ordenes-detalle`.oid
+                inner join  servicios on servicios.codserv =`ordenes-detalle`.codser
+                inner join kilometros on kilometros.oid=ordenes.oid
+                inner join talleres on talleres.tid = ordenes.tid
+                where ordenes.vid=:vid");
+                $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'getkmydomautocliente':
+            try {
+                $vid=$_GET['vid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select IFNULL(MAX(kilometros.km), 'No hay registro') as km, vehiculos.dominio from kilometros
+                inner join vehiculos on kilometros.vid =vehiculos.vid
+                where kilometros.vid=:vid");
+                $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked      
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'getproximoserviciocliente':
+            try {
+                $vid=$_GET['vid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select vehiculos.dominio, IFNULL(max(DATE(ordenes.fecha)),'No registra proximo servicio') as servicio from vehiculos
+                left join ordenes on vehiculos.vid =ordenes.vid
+                where vehiculos.estado=1 and  vehiculos.vid=:vid");
+                $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked      
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'proximoturnoscliente':
+            try {
+                $uid=$_SESSION['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select ordenes.oid, dominio, fecha , talleres.nombre, count(`ordenes-detalle`.codser ) as servicios from ordenes
+                inner join `ordenes-detalle` on `ordenes-detalle`.oid=ordenes.oid
+                inner join talleres on talleres.tid = ordenes.tid
+                inner join vehiculos on ordenes.vid = vehiculos.vid
+                inner join usuarios on usuarios.uid = vehiculos.uid
+                where usuarios.uid=:uid and ordenes.estado=1
+                group by oid");
+                $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
                 $stmt->execute();
                     // it worked
                 
