@@ -12,7 +12,11 @@ jQuery(document).ready(function()
     //----cliente
     getdatosactualautocliente();
     getclienteproximoservicio();
-    
+
+    $('#tunroscrollcliente').slimScroll({
+      height: '150px'
+    });
+
     $('#serviciocheckorden').slimScroll({
       height: '150px'
     });
@@ -41,10 +45,9 @@ jQuery(document).ready(function()
     $('#modificarturnochek').slimScroll({
       height: '150px'
     });
+   
     
-  
-
-
+    
   $('#sa-warning').click(function(){
       swal({
           title: "Quiere eliminar el vehiculo?",
@@ -914,8 +917,10 @@ function proximoturnoscliente(){
       if(respuesta != null){
         $('#proximosturnosclientebody').html("");      
             $.each(respuesta, function(index, value){ 
-              console.log("entro")
+              if(new Date(value.fecha).getTime()> new Date().getTime()){
                 $("#proximosturnosclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td>'+value.servicios+'</td></tr>');
+              }
+               
             });
           
             $('#proximosturnosclientetabla').DataTable( {
@@ -972,4 +977,123 @@ function cargarordenescliente(){
       } 
   }
 })
+}
+
+function cargarautoselect(){
+  $vid=1;
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "selectvehiculos"},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){
+            $('#selecciondevehiculocliente').empty();
+            $('#selecciondevehiculocliente').append($('<option>', {
+              value:"",
+              text: "seleccione su vehiculo",
+              hidden: true,
+              selected: true
+          }));
+            $.each(respuesta, function(index, value){ 
+              $('#selecciondevehiculocliente').append($('<option>', {
+                value: value.vid,
+                text: value.dominio
+            }));
+            });
+          
+        cargarlistadetaller()
+      }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+
+}
+
+function cargarsolicitudnuevoturno(){
+  var $select=[]
+  $.each($("input[name='servicioclientesolicitudchek']:checked"), function(){            
+    $select.push($(this).val());
+  });
+  $vid=$('#selecciondevehiculocliente option:selected').val()
+  $obs=$("#servicioclientesolicitudchek").val();
+  d=new Date()
+  $fecha=d.getFullYear+'-'+d.getUTCMonth+1+'-'+d.getDate
+  if($select.length>0){
+    $.ajax({
+      url: "../clases/tabla.php",
+      method: "GET",
+      async: false,
+      data: {funcion: "nuevasolicitud",vid:$vid},
+      dataType: "json",
+      success: function(respuesta) {     
+         
+          
+        }
+    });
+
+  }
+  else{
+    swal({
+      title: "¡No selecciono servicio!",
+      text: "Tiene que seleccionar un servicio",
+      icon: "warning",
+      dangerMode: true,
+    });
+
+  }
+
+}
+
+function cargarlistadetaller(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "listadetaller"},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){ 
+        $('#listadetaller').empty(); 
+        $('#listadetaller').append($('<option>', {
+          value:"",
+          text: "seleccionar el taller",
+          hidden: true,
+          selected: true
+      }));
+            $.each(respuesta, function(index, value){ 
+              $('#listadetaller').append($('<option>', {
+                value: value.tid,
+                text: value.nombre
+            }));
+            });
+          
+            
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+ }
+
+ function cargardatostaller(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: false,
+    data: {funcion: "obtenerdatostaller",tid:$tid},
+    dataType: "json",
+    success: function(respuesta) {
+      //respuesta[0]
+    
+    }
+  })
+ }
+
+function cargarserviciosdetaller(){
+
 }

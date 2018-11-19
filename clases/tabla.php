@@ -476,6 +476,66 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                     echo '{"error":{"text":' . $e->getMessage() . '}}';
             }
         break;
+        case 'selectvehiculos':
+            try {
+                $uid=$_SESSION['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select vid, dominio from vehiculos where estado!=0 and uid=:uid");
+                $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'nuevasolicitud':
+            try {
+                $uid=$_SESSION['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("s");
+                $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'listadetaller':
+            try {
+                $db   = getDB();
+                $stmt = $db->prepare("select tid, nombre from talleres where estado!=0");
+                $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'obtenerdatostaller':
+            try {
+                $tid=$_GET['tid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select tid, nombre from talleres where estado!=0");
+                $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+
       
     }
 }

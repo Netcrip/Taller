@@ -169,113 +169,43 @@
 
 
 <!-- Modal nuevo Turno -->
-<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="nuevo-turno">
+<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="solicitartunro">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" >Vehiculo</h4>
+        <h4 class="modal-title" >Solicitud de servicio</h4>
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
       </div>
       <div class="modal-body">
-        <div class="box">
-          <div class="box-header with-border">
-            <h3 class="box-title">Solicitar Turno</h3>
-            <div class="box-tools pull-right">
-              <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
-            </div>
-          </div>
-            <!-- /.box-header -->
           <div class="box-body">
-              <div class="row">
-              <div class="col-md-12 col-12">
-                <form action="">
-                <div class="form-group">
-                  <input type="text" class="form-control" disabled  placeholder="AF-352-LS" id="dominio"> 
-                </div>
-                <div class="form-group">
-                    <label>Servicio</label>
-                    <select class="form-control select2" style="width: 100%;">
-                      <option value="">Seleccione Servicio:</option>
-                      <option >s1</option>
-                      <option >s2</option>
-                      <option >s3</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Taller</label>
-                    <select class="form-control select2" style="width: 100%;">
-                      <option value="">Seleccione Taller:</option>
-                      <option >T1</option>
-                      <option >T2</option>
-                      <option >T3</option>
-                    </select>
-                  </div>
-                  <div class="box-body">
-                    <h3>Disponibilidad</h3>
-                      <div class="form-group">
-                        <label>lunes</label>
-                        <select class="form-control select2" style="width: 100%;">
-                        <option selected>No Puedo</option>
-                          <option >todo el dia</option>
-                          <option >Mañana</option>
-                          <option >Tarde</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label>martes</label>
-                        <select class="form-control select2" style="width: 100%;">
-                        <option selected>No Puedo</option>
-                          <option >todo el dia</option>
-                          <option >Mañana</option>
-                          <option >Tarde</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label>miercoles</label>
-                        <select class="form-control select2" style="width: 100%;">
-                        <option selected>No Puedo</option>
-                          <option >todo el dia</option>
-                          <option >Mañana</option>
-                          <option >Tarde</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label>jueves</label>
-                        <select class="form-control select2" style="width: 100%;">
-                        <option selected>No Puedo</option>
-                          <option >todo el dia</option>
-                          <option >Mañana</option>
-                          <option >Tarde</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label>viernes</label>
-                        <select class="form-control select2" style="width: 100%;">
-                          <<option selected>No Puedo</option>
-                          <option >todo el dia</option>
-                          <option >Mañana</option>
-                          <option >Tarde</option>
-                        </select>
-                      </div>
-                      <div class="form-group">
-                        <label>Sabado</label>
-                        <select class="form-control select2" style="width: 100%;">
-                          <option selected>No Puedo</option>
-                          <option >todo el dia</option>
-                          <option >Mañana</option>
-                          <option >Tarde</option>
-                        </select>
-                      </div>
-                  </div>
-                </form>
+          <div class="form-group">
+              <label for="selecciondevehiculocliente">Seleccione vehiculo:</label>
+                <select  class="form-control" name="" id="selecciondevehiculocliente"></select>
               </div>
+            <div class="form-group">
+              <label for="listadetaller">Seleccione Taller:</label>
+                <select  class="form-control" name="" id="listadetaller"></select>
             </div>
+            <div class="form-group">
+              <label for="datosdeltaller">Observaciones para el turno (dia/horario):</label>
+                <textarea type="text" id="datosdeltaller" class="form-control" disabled id="Info" style="resize:none"  rows="3"></textarea>
+              </div>
+
+            <label>Seleccion de servicio</label>
+            <div clase="form-check form-check-inline nuevo-turnoscroll" id="serviciosdetaller" >
+              
+            </div>
+          
           </div>
-          <div class="modal-footer modal-footer-uniform">
+          <div class="form-group">
+              <label for="dominioserv">Observaciones para el turno (dia/horario):</label>
+                <textarea type="text" id="observacionescliente" class="form-control"  id="Info" style="resize:none"  rows="3"></textarea>
+              </div>
+          <div class="modal-footer modal-footer-uniform col-12">
             <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-info float-right" data-dismiss="modal"> Solicitar </button>
+            <button type="button" class="btn btn-info float-right" onclick="cargarsolicitudnuevoturno()" data-dismiss="modal"> Solicitar </button>
           </div>
-        </div>
+        
               <!-- /.box-body -->
       </div>
     </div>    
@@ -283,7 +213,7 @@
 </div>
 
 <!-- Modal Consultar Turno -->
-<div class="modal fade" tabindex="-1" role="dialog" id="consultar-turno">
+<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="consultar-turno">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">

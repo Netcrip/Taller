@@ -1,7 +1,7 @@
 modales administracion
 
 
-<div class="modal center-modal fade" id="nuevo-taller" tabindex="-1" style="display: block;">
+<div class="modal center-modal fade show" id="nuevo-taller" tabindex="-1" style="display: block;">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
