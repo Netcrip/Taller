@@ -36,11 +36,45 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                         echo true;
                 else
                     echo false;
+                $stmt2="";
+
             }   
             catch (PDOException $e) {
                 echo '{"error":{"text":' . $e->getMessage() . '}}';
                 //$stmt=null;
                 //$db=null;
+            }
+        break;
+        case 'generarsolicitud':
+            try {
+                $vid=$_GET['vid'];
+                $tid=$_GET['tid'];
+                $obs=$_GET['obs'];
+                $fecha=$_GET['fecha'];
+                $select=$_GET['select'];
+                $db   = getDB();
+                $stmt = $db->prepare("insert into solicitud (vid,tid,fecha,observacion) values (:vid,:tid,:fecha,:obs);");
+                $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+                $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt->bindParam("fecha", $fecha, PDO::PARAM_STR);
+                $stmt->bindParam("obs", $obs, PDO::PARAM_STR);
+                $stmt->execute();
+                $temp = $db->lastInsertId();
+                    foreach($select as $cod){
+                        $stmt2 = $db->prepare("insert into `solicitud-detalle` (sid,codserv) values (:sid,:codserv)");
+                        $stmt2->bindParam("sid", $temp, PDO::PARAM_STR);
+                        $stmt2->bindParam("codserv", $cod, PDO::PARAM_STR);
+                        if ($stmt2->execute()) { 
+                            // it worked
+                            $insertid="si";
+                        } 
+                    }
+                if($insertid=="si"){
+                    echo true;
+                }
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
             }
         break;
         case 'cargareditarorden':
@@ -352,8 +386,7 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                 where `taller-usuario`.uid=:uid");
                 $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
                 $stmt->execute();
-                    // it worked
-                
+                    // it worked                
                 echo json_encode($stmt->fetchAll());
             }
             catch (PDOException $e) {
@@ -443,9 +476,9 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
             try {
                 $vid=$_GET['vid'];
                 $db   = getDB();
-                $stmt = $db->prepare("select vehiculos.dominio, IFNULL(max(DATE(ordenes.fecha)),'No registra proximo servicio') as servicio from vehiculos
+                $stmt = $db->prepare("select min(ordenes.oid) as oid, vehiculos.dominio, ordenes.fecha as servicio from vehiculos
                 left join ordenes on vehiculos.vid =ordenes.vid
-                where vehiculos.estado=1 and  vehiculos.vid=:vid");
+                where vehiculos.estado=1 and  vehiculos.vid=:vid and DATE(ordenes.fecha)> curdate()");
                 $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
                 $stmt->execute();
                     // it worked      
@@ -491,12 +524,14 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                     echo '{"error":{"text":' . $e->getMessage() . '}}';
             }
         break;
-        case 'nuevasolicitud':
+        case 'serviciodeltaller':
             try {
-                $uid=$_SESSION['uid'];
+                $tid=$_GET['tid'];
                 $db   = getDB();
-                $stmt = $db->prepare("s");
-                $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+                $stmt = $db->prepare("select `servicio-taller`.codserv, servicios.nombre from `servicio-taller`
+                inner join servicios on servicios.codserv= `servicio-taller`.codserv 
+                where tid=:tid");
+                $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
                 $stmt->execute();
                     // it worked
                 
@@ -524,7 +559,8 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
             try {
                 $tid=$_GET['tid'];
                 $db   = getDB();
-                $stmt = $db->prepare("select tid, nombre from talleres where estado!=0");
+                $stmt = $db->prepare("select nombre,telefono, email,calle,nro, localidad from talleres 
+                inner join cp on talleres.codloca = cp.codlocalidad where tid=:tid");
                 $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
                 $stmt->execute();
                     // it worked
@@ -534,9 +570,95 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
             catch (PDOException $e) {
                     echo '{"error":{"text":' . $e->getMessage() . '}}';
             }
+            
         break;
-
-      
+        case 'solicitudesactivas':
+            try {
+            $uid=$_SESSION['uid'];
+            $db   = getDB();
+            $stmt = $db->prepare("select solicitud.sid, vehiculos.dominio, talleres.nombre, fecha, count(`solicitud-detalle`.codserv) as servicios from solicitud
+            inner join vehiculos on vehiculos.vid = solicitud.vid
+            inner join `solicitud-detalle` on `solicitud-detalle`.sid =solicitud.sid
+            inner join talleres on solicitud.tid = talleres.tid
+            inner join usuarios on usuarios.uid = vehiculos.uid where usuarios.uid=:uid and solicitud.estado!=0
+            group by sid");
+            $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+            $stmt->execute();
+                // it worked
+            
+            echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'selectmarca':
+            try {
+            $db   = getDB();
+            $stmt = $db->prepare("select codmarca, nombre from marca where estado!=0");
+            $stmt->execute();
+                // it worked
+            
+            echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'selecttipovehiculo':
+            try {
+            $db   = getDB();
+            $stmt = $db->prepare("select codtipo, tipo from tipovehiculo where estado!=0");
+            $stmt->execute();
+                // it worked
+            
+            echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'selectmodelo':
+            try {
+            $tipo=$_GET['codtipo'];
+            $codmarca=$_GET['codmarca'];
+            $db   = getDB();
+            $stmt = $db->prepare("select codmodelo, nombremodelo from modelo  where codmarca=:codmarca and tipo=:tipo");
+            $stmt->bindParam("codmarca", $codmarca, PDO::PARAM_STR);
+            $stmt->bindParam("tipo", $tipo, PDO::PARAM_STR);
+            $stmt->execute();
+                // it worked
+            
+            echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'altaauto':
+            try {
+            $codmodelo=$_GET['codmodelo'];
+            $dominio=$_GET['dominio'];
+            $ano=$_GET['ano'];
+            $motor=$_GET['motor'];
+            $chasis=$_GET['chasis'];
+            $uid=$_SESSION['uid'];
+            $db   = getDB();
+            $stmt = $db->prepare("insert into vehiculos (uid,codmodelo,dominio,año,chasis,motor) values (:uid,:codmodelo,:dominio,:ano,:chasis,:motor)");
+            $stmt->bindParam("codmodelo", $codmodelo, PDO::PARAM_STR);
+            $stmt->bindParam("dominio", $dominio, PDO::PARAM_STR);
+            $stmt->bindParam("ano", $ano, PDO::PARAM_STR);
+            $stmt->bindParam("motor", $motor, PDO::PARAM_STR);
+            $stmt->bindParam("chasis", $chasis, PDO::PARAM_STR);
+            $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+            if($stmt->execute())            
+                 echo true;
+                // it worke
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
     }
 }
 ?>

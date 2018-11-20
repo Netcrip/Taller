@@ -12,7 +12,9 @@ jQuery(document).ready(function()
     //----cliente
     getdatosactualautocliente();
     getclienteproximoservicio();
-
+    cargartipo();
+    cargarmarca();
+   
     $('#tunroscrollcliente').slimScroll({
       height: '150px'
     });
@@ -205,7 +207,7 @@ jQuery(document).ready(function()
   $("#formasignarturnonuevo").submit(function(e){
       e.preventDefault();
       var select = [];
-      $tid=0;
+      var $tid =tengotaller();
       $dominio=$("#dominionuevoturno").val();
       $fecha=$("#fechaordennuevoturno").val();
       $horario=$("#horaordennuevoturno").val();
@@ -219,7 +221,7 @@ jQuery(document).ready(function()
         $.ajax({
           url: "../clases/tabla.php",
           method: "GET",
-          async: false,
+          async: true,
           data: {funcion: "setordendeservicio",tid:$tid,dominio:$dominio,fecha:$fecha,select:select,horario:$horario,obs:$obs},
           success: function(result) {
             if(result){
@@ -275,6 +277,11 @@ $('#tallerserviciochek :checkbox').change(function() {
 
 $("#modificarserviciostaller").click(btnmodificarserviciotaller);
 
+$("#listadetaller").change(cargardatostaller);
+
+$("#selectmarca").change(cargarmodelo);
+$("#selecciontipo").change(cargarmodelo);
+
 }) ///fin load
 
 
@@ -288,7 +295,7 @@ function getsesion(){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "getsesion"},
     dataType: "json",
     success: function(respuesta) {      
@@ -304,11 +311,11 @@ function getsesion(){
 
 function cargarordenesdeservicio(){
   $fecha=$("#fechaparaordenes").val();
-  $tid=0;
+  var $tid =tengotaller();
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "gettablaordenes",fecha:$fecha,tid:$tid},
     dataType: "json",
     success: function(respuesta) {
@@ -346,26 +353,27 @@ function cargarordenesdeservicio(){
 }
 
 
-function cargarsolicitud(){
+function cargarsolicitud(){ 
   var $tid =tengotaller();
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "gettablaservicio",tid:$tid},
     dataType: "json",
     success: function(respuesta) {
-      if ( $.fn.dataTable.isDataTable( '#solturnos') ) {
-        table = $('#solturnos').DataTable();
+      if ( $.fn.dataTable.isDataTable( '#solturnostaller') ) {
+        table = $('#solturnostaller').DataTable();
         table.destroy();
       }
-      if(respuesta != null && $.isArray(respuesta)){
-        $('#Solicitudbody').html("");      
+      if(respuesta != null){
+        $('#solturnostallerbody').html("");      
             $.each(respuesta, function(index, value){ 
+              
                 var val="'"+value.observacion+"'";
-                $("#Solicitudbody").append("<tr><td>"+ value.sid +"</td><td>" + value.dominio + "</td><td >"+value.nombre+'</td><td> <a href="#" data-toggle="modal" data-target="#asignar-turno" onclick="generarordenservicio('+value.sid+','+val+')"> <span class="label bg-green"><i class="fa fa-pencil"></i></span></a><a href="#" onclick=eliminarsolicitudservicio('+value.sid+')> <span class="label label-danger"><i class="fa fa-ban"></i></span></a></td></tr>');
+                $("#solturnostallerbody").append("<tr><td>"+ value.sid +"</td><td>" + value.dominio + "</td><td >"+value.nombre+'</td><td> <a href="#" data-toggle="modal" data-target="#asignar-turno" onclick="generarordenservicio('+value.sid+','+val+')"> <span class="label bg-green"><i class="fa fa-pencil"></i></span></a><a href="#" onclick=eliminarsolicitudservicio('+value.sid+')> <span class="label label-danger"><i class="fa fa-ban"></i></span></a></td></tr>');
             });
-            $('#solturnos').DataTable( {
+            $('#solturnostaller').DataTable( {
               dom: 'Bfrtip',
               buttons: [
                   'copyHtml5',
@@ -397,7 +405,7 @@ function cargareditarorden($oid,$t){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "cargareditarorden",buscar:$buscar},
     dataType: "json",
     success: function(respuesta) {      
@@ -429,7 +437,7 @@ function verdetalleorden($oid,$t){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "cargareditarorden",buscar:$buscar},
     dataType: "json",
     success: function(respuesta) {     
@@ -454,7 +462,7 @@ function verdetalleordenclieten($oid){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "cargareditarorden",buscar:$buscar},
     dataType: "json",
     success: function(respuesta) {     
@@ -506,7 +514,7 @@ function guardarturnoeditado(){
     $.ajax({
       url: "../clases/tabla.php",
       method: "GET",
-      async: false,
+      async: true,
       data: {funcion: "modificarturnoasignado",oid:$oid,t:$t,dominio:$dominio,fecha:$fecha,select:select,horario:$horario,obs:$obs},
       success: function(result) {
         console.log(result);
@@ -555,7 +563,7 @@ function eliminarorden($oid,$t){
       $.ajax({
         url: "../clases/tabla.php",
         method: "GET",
-        async: false,
+        async: true,
         data: {funcion: "eliminarorden", oid:$oid, t:$t},
         success: function(result) {
           if(result){
@@ -593,7 +601,7 @@ function generarordenservicio($sid,$ob)
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "cargarordenservicio",sid:$sid},
     dataType: "json",
     success: function(respuesta) {     
@@ -623,7 +631,7 @@ function asignarorden(){
     $.ajax({
       url: "../clases/tabla.php",
       method: "GET",
-      async: false,
+      async: true,
       data: {funcion: "cargarordenservicio",sid:$sid},
       dataType: "json",
       success: function(respuesta) {     
@@ -641,7 +649,7 @@ function asignarorden(){
     $.ajax({
       url: "../clases/tabla.php",
       method: "GET",
-      async: false,
+      async: true,
       data: {funcion: "asignarturno", sid:$sid, vid:$vid, tid:$tid, fecha:$fecha, hora:$hora, select:$select, observacion:$observacion},
       dataType: "json",
       success: function(respuesta) {  
@@ -676,7 +684,7 @@ function eliminarsolicitudservicio($sid){
       $.ajax({
         url: "../clases/tabla.php",
         method: "GET",
-        async: false,
+        async: true,
         data: {funcion: "anularsolicitud", sid:$sid},
         dataType: "json",
         success: function(respuesta) {     
@@ -699,11 +707,11 @@ function eliminarsolicitudservicio($sid){
 }
 
 function cargarserviciostaller(){
-  var $tid =tengotaller();
+  var $tid =0;
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "serviciostaller", tid:$tid},
     dataType: "json",
     success: function(respuesta) {     
@@ -723,7 +731,6 @@ function cargarserviciostaller(){
 }
 
 function btnmodificarserviciotaller(){
-
   var $tid =tengotaller();
   var $select=[];
   $.each($("input[name='tallerservicioeditar']:checked"), function(){            
@@ -733,7 +740,7 @@ function btnmodificarserviciotaller(){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "modificarserviciotaller",tid:$tid,select:$select},
     dataType: "json",
     success: function(respuesta) {     
@@ -753,16 +760,18 @@ function btnmodificarserviciotaller(){
 }
 
 function tengotaller(){
-  var $tid;
+  let $tid="A";
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "tengotaller"},
     dataType: "json",
-    success: function(respuesta) {     
+    success: function(respuesta) {   
         if(respuesta){
           $tid=respuesta[0].tid;
+        
+          
         }
     }
   });
@@ -790,7 +799,7 @@ function cumplimentarorden($oid,$tipo,$vid){
               $.ajax({
                 url: "../clases/tabla.php",
                 method: "GET",
-                async: false,
+                async: true,
                 data: {funcion: "cumplimentarorden", oid:$oid,tipo:true, vid:$vid,km:value,fecha:$fecha},
                 dataType: "json",
                 success: function(respuesta) { 
@@ -822,7 +831,7 @@ function cumplimentarorden($oid,$tipo,$vid){
           $.ajax({
             url: "../clases/tabla.php",
             method: "GET",
-            async: false,
+            async: true,
             data: {funcion: "cumplimentarorden",oid:$oid,tipo:$tipo,vid:"null",km:"null",fecha:"null"},
             dataType: "json",
             success: function(respuesta) {  
@@ -857,7 +866,7 @@ $vid=1;
 $.ajax({
   url: "../clases/tabla.php",
   method: "GET",
-  async: false,
+  async: true,
   data: {funcion: "getkmydomautocliente",vid:$vid},
   dataType: "json",
   success: function(respuesta) {     
@@ -872,27 +881,22 @@ $.ajax({
 }
 
 function getclienteproximoservicio(){
-$vid=1;
+$vid=2;
 $.ajax({
   url: "../clases/tabla.php",
   method: "GET",
-  async: false,
+  async: true,
   data: {funcion: "getproximoserviciocliente",vid:$vid},
   dataType: "json",
   success: function(respuesta) {   
-    console.log(respuesta)
       if(respuesta != null){
-        if(respuesta[0].servicio=="No registra proximo servicio"){
+        if(respuesta[0].servicio==null){
           $("#proximoserviciocliente").text("No registra proximo servicio");
         }
         else {
-          if(new Date(respuesta[0].servicio).getTime()< new Date().getTime()){
-            $("#proximoserviciocliente").text("No registra proximo servicio");
-          }
-          else
-          {
+          
             $("#proximoserviciocliente").text(respuesta[0].servicio);
-          }
+          
           
         }
           
@@ -906,7 +910,7 @@ function proximoturnoscliente(){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "proximoturnoscliente"},
     dataType: "json",
     success: function(respuesta) {
@@ -946,7 +950,7 @@ function cargarordenescliente(){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "servicioauto",vid:$vid},
     dataType: "json",
     success: function(respuesta) {
@@ -955,7 +959,6 @@ function cargarordenescliente(){
         table.destroy();
       }
       if(respuesta != null && $.isArray(respuesta)){
-        console.log(respuesta)
         $('#ordenesclientebody').html("");      
             $.each(respuesta, function(index, value){ 
                 $("#ordenesclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.taller+ "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.fecha +'</td><td>'+value.servicio+'</td><td >'+value.km+'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="verdetalleordenclieten('+value.oid+')"> <span class="label bg-info"><i class="fa fa-eye"></i></span></a></span></a></td></tr>');
@@ -984,7 +987,7 @@ function cargarautoselect(){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "selectvehiculos"},
     dataType: "json",
     success: function(respuesta) {
@@ -1026,7 +1029,7 @@ function cargarsolicitudnuevoturno(){
     $.ajax({
       url: "../clases/tabla.php",
       method: "GET",
-      async: false,
+      async: true,
       data: {funcion: "nuevasolicitud",vid:$vid},
       dataType: "json",
       success: function(respuesta) {     
@@ -1052,7 +1055,7 @@ function cargarlistadetaller(){
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "listadetaller"},
     dataType: "json",
     success: function(respuesta) {
@@ -1081,19 +1084,317 @@ function cargarlistadetaller(){
  }
 
  function cargardatostaller(){
+   $tid=$("#listadetaller").val();
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: false,
+    async: true,
     data: {funcion: "obtenerdatostaller",tid:$tid},
     dataType: "json",
     success: function(respuesta) {
-      //respuesta[0]
-    
+     $("#datosdeltaller").val(respuesta[0].nombre+" calle: "+respuesta[0].calle+" nro "+respuesta[0].nro+" localidad: "+respuesta[0].localidad+" tel: "+respuesta[0].telefono+" email: "+respuesta[0].email)
+     cargarserviciosdetaller($tid)
     }
   })
  }
 
-function cargarserviciosdetaller(){
+function cargarserviciosdetaller($tid){  
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "serviciodeltaller",tid:$tid},
+    dataType: "json",
+    success: function(respuesta) {
+      $("#serviciosdetaller").empty();
+      $.each(respuesta, function(index, value){ 
+         $("#serviciosdetaller").append('<input class="form-check-input col-4" type="checkbox" name="checkserviciotallersolicitud"  id="scr'+value.codserv+'" value="'+value.codserv+'"> <label class="form-check-label col-6" for="scr'+value.codserv+'">'+value.nombre+'</label><br>');
 
+      })
+    }
+  })
+}
+
+function guardarsolicitud(){
+  let $select=[];
+  d= new Date();
+  $fecha= d.getUTCFullYear()+"-"+(d.getUTCMonth()+1)+"-"+d.getDate();
+  $obs=$("#observacionescliente").val();
+  $vid=$("#selecciondevehiculocliente").val()
+  $tid=$("#listadetaller").val()
+  $.each($("input[name='checkserviciotallersolicitud']:checked"), function(){            
+    $select.push($(this).val());
+  });
+  if($vid==""){
+    swal({
+      title: "Seleccione vehiculo",
+      text: "debe seleccionar un vehiculo",
+      icon: "error",
+      dangerMode: true,
+    })
+  }
+  else{
+    if($tid==""){
+      swal({
+        title: "Seleccione taller",
+        text: "debe seleccionar un taller",
+        icon: "error",
+        dangerMode: true,
+      })
+    }
+    else{
+      if($select>0){
+       console.log("tid"+$tid,"vid"+$vid, "fecha"+$fecha,"array "+$select,"obs"+$obs)
+        $.ajax({
+          url: "../clases/tabla.php",
+          method: "GET",
+          async: true,
+          data: {funcion: "generarsolicitud", vid:$vid, tid:$tid, select:$select, obs:$obs, fecha:$fecha},
+          dataType: "json",
+          success: function(respuesta) {
+            console.log(respuesta)
+            if(respuesta){
+              swal({
+                title: "Se a generado la solicitud",
+                text: "Espere a que el taller asigne un dia",
+                icon: "success",
+                dangerMode: true,
+              })
+            }            
+          }
+        })
+        $(".modal .close").click();
+
+      }
+      else{
+        swal({
+          title: "Seleccione servicio",
+          text: "debe seleccionar un servicio por lo menos",
+          icon: "error",
+          dangerMode: true,
+        })
+      }
+    }
+  }
+
+}
+
+function solicitudesactivas(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "solicitudesactivas"},
+    dataType: "json",
+    success: function(respuesta) {
+      console.log(respuesta)
+      if ( $.fn.dataTable.isDataTable( '#solicitudesclientetabla') ) {
+        table = $('#solicitudesclientetabla').DataTable();
+        table.destroy();
+      }
+      if(respuesta != null){
+        $('#solicitudesclientebody').html("");      
+            $.each(respuesta, function(index, value){ 
+                $("#solicitudesclientebody").append("<tr><td>" + value.sid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td>'+value.servicios+'</td></tr>');
+              
+               
+            });
+          
+            $('#solicitudesclientetabla').DataTable( {
+              dom: 'Bfrtip',
+              buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5',
+                  'pdfHtml5',
+                  'print'
+              ]
+              });
+        }
+      }
+    })
+}
+
+function cargarmodelo(){
+  $codtipo=$("#selecciontipo").val()
+  $codmarca=$("#selectmarca").val()
+  if($codtipo!="" || $codmarca!=""){
+    $.ajax({
+      url: "../clases/tabla.php",
+      method: "GET",
+      async: true,
+      data: {funcion: "selectmodelo",codmarca:$codmarca,codtipo:$codtipo},
+      dataType: "json",
+      success: function(respuesta) {
+        if(respuesta != null){ 
+          $('#seleccionmodelo').empty(); 
+          $('#seleccionmodelo').append($('<option>', {
+            value:"",
+            text: "seleccionar el modelo",
+            hidden: true,
+            selected: true
+        }));
+              $.each(respuesta, function(index, value){ 
+                $('#seleccionmodelo').append($('<option>', {
+                  value: value.codmodelo,
+                  text: value.nombremodelo
+              }));
+              });
+            
+              
+          }
+        else{
+          console.log("salio error")
+        } 
+    }
+  })
+  }
+}
+function cargarmarca(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "selectmarca"},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){ 
+        $('#selectmarca').empty(); 
+        $('#selectmarca').append($('<option>', {
+          value:"",
+          text: "seleccionar la marca",
+          hidden: true,
+          selected: true
+             }));
+        $.each(respuesta, function(index, value){ 
+            $('#selectmarca').append($('<option>', {
+                value: value.codmarca,
+                text: value.nombre
+          }));
+        });
+          
+            
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+
+}
+function cargartipo(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "selecttipovehiculo"},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){ 
+        $('#selecciontipo').empty(); 
+        $('#selecciontipo').append($('<option>', {
+          value:"",
+          text: "seleccionar el tipo de vehiculo",
+          hidden: true,
+          selected: true
+      }));
+            $.each(respuesta, function(index, value){ 
+              $('#selecciontipo').append($('<option>', {
+                value: value.codtipo,
+                text: value.tipo
+            }));
+            });
+          
+            
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+}
+
+function cargarvehiculonuevo(){
+  $codmodelo=$("#seleccionmodelo").val()
+  $dominio=$("#nuevodominio").val();
+  $ano=$("#añonuevoauto").val()
+  $motor=$("#nuevomotor").val()
+  $chasis=$("#nuevochasis").val()
+  if($codmodelo==null || $codmodelo==""){
+    swal({
+      title: "Seleccione modelo",
+      text: "debe seleccionar un modelo",
+      icon: "error",
+      dangerMode: true,
+    })
+  }
+  else
+  {
+    if($dominio==""){
+      swal({
+        title: "Ingrese dominio",
+        text: "debe ingresar un dominio",
+        icon: "error",
+        dangerMode: true,
+      })
+    }
+    else
+    {
+      if($ano==""){
+        swal({
+          title: "Ingrese un año",
+          text: "debe ingresar un año",
+          icon: "error",
+          dangerMode: true,
+        })
+      }
+      else
+      {
+        if($motor==""){
+          swal({
+            title: "Ingrese un numero de motor",
+            text: "debe ingresar un numero de motor",
+            icon: "error",
+            dangerMode: true,
+          })
+        }
+        else{
+          if($chasis==""){
+            swal({
+              title: "Ingrese numero chasis",
+              text: "debe ingresar un numero de chasis",
+              icon: "error",
+              dangerMode: true,
+            })
+          }
+          else{
+
+            console.log($codmodelo,$dominio,$ano,$motor,$chasis)
+            $.ajax({
+              url: "../clases/tabla.php",
+              method: "GET",
+              async: true,
+              data: {funcion: "altaauto",codmodelo:$codmodelo,dominio:$dominio,ano:$ano,motor:$motor,chasis:$chasis},
+              dataType: "json",
+              success: function(respuesta) {
+                if(respuesta){ 
+                  swal({
+                    title: "Cargado con exito!",
+                    text: "Se ah registrado con exito el vehiculo",
+                    icon: "success",
+                    dangerMode: true,
+                  })
+                      
+                }
+                else{
+                  console.log("salio error")
+                } 
+              
+              }
+            })
+          }
+        }
+      }
+    }
+  }
 }

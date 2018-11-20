@@ -169,6 +169,7 @@
 
 
 <!-- Modal nuevo Turno -->
+
 <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="solicitartunro">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -184,10 +185,10 @@
               </div>
             <div class="form-group">
               <label for="listadetaller">Seleccione Taller:</label>
-                <select  class="form-control" name="" id="listadetaller"></select>
+                <select  class="form-control" name=""  id="listadetaller"></select>
             </div>
             <div class="form-group">
-              <label for="datosdeltaller">Observaciones para el turno (dia/horario):</label>
+              <label for="datosdeltaller">Datos del taller:</label>
                 <textarea type="text" id="datosdeltaller" class="form-control" disabled id="Info" style="resize:none"  rows="3"></textarea>
               </div>
 
@@ -203,7 +204,7 @@
               </div>
           <div class="modal-footer modal-footer-uniform col-12">
             <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-info float-right" onclick="cargarsolicitudnuevoturno()" data-dismiss="modal"> Solicitar </button>
+            <button type="button" class="btn btn-info float-right" onclick="guardarsolicitud()"> Solicitar </button>
           </div>
         
               <!-- /.box-body -->
@@ -238,6 +239,52 @@
               
               </tbody>
             </table>
+            
+            
+          </div>
+
+							<!-- /.col -->
+						
+										<!-- /.col -->
+					</div>
+					<div class="modal-footer modal-footer-uniform">
+						<button type="button" class="btn btn-bold btn-pure btn-secondary btn-block" data-dismiss="modal">Close</button>
+					</div>
+									<!-- /.row -->
+				</div>
+								<!-- /.box-body -->
+			</div>
+		</div>
+					<!-- /.modal-content -->
+</div>
+
+
+
+<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="consultar-solicitudes">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" >Ver Proximos turnos</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		  </div>
+					<!-- /.box-header -->
+				<div class="box-body">
+					<div class="row">
+          <div class="box-body ">
+          <table class="table tablas table-hover table-responsive " id="solicitudesclientetabla">
+                <thead>
+                  <tr>
+                    <th>O. T.</th>
+                    <th>Dominio</th>
+                    <th>Taller</th>
+                    <th>fecha</th>
+                    <th>C. Serv.</th>
+                  </tr>
+                </thead>
+                <tbody id="solicitudesclientebody">           
+                
+                </tbody>
+              </table>            
           </div>
 
 							<!-- /.col -->
@@ -304,104 +351,62 @@
       </div>
     </div>
   </div>
-</section>
+
 
 <!-- Modal Alta auto -->
 <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" id="modal-altavehiculo">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title" >Vehiculo</h4>
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          </div>
-          <div class="modal-body">
-
-              <div class="box">
-                  <div class="box-header with-border">
-                    <h3 class="box-title">Alta de Vehiculo</h3>
-          
-                    <div class="box-tools pull-right">
-                      <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
-                    </div>
-                  </div>
-                  <!-- /.box-header -->
-                  <div class="box-body">
-                    <div class="row">
-                      <div class="col-md-6 col-12">
-                        <div class="form-group">
-                          <label>Vehiculo</label>
-                          <select class="form-control select2" style="width: 100%;">
-                            <option value="">Seleccione Vehiculo:</option>
-                            <option value="1">Auto</option>
-                            <option value="2">Moto</option>
-                            <option value="3">Camioneta</option>
-                          </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Marca</label>
-                            <select class="form-control select2" style="width: 100%;">
-                              <option value="">Seleccione Marca:</option>
-                              <option value="1">Fiat</option>
-                              <option value="2">Ford</option>
-                              <option value="3">Chevrolet</option>
-                            </select>
-                          </div>
-
-                          <div class="form-group">
-                              <label>Modelo</label>
-                              <select class="form-control select2" style="width: 100%;">
-                                <option value="">Seleccione Modelo:</option>
-                                <option value="1">Palio</option>
-                                <option value="2">Fiesta</option>
-                                <option value="3">Corsa</option>
-                              </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Año:</label>
-                                <select class="form-control select2" style="width: 100%;">
-                                  <option value="">Seleccione Año:</option>
-                                  <option value="1">2010</option>
-                                  <option value="2">2012</option>
-                                  <option value="3">2014</option>
-                                </select>
-                              </div>
-                            
-                              <div class="form-group">
-                                  <label>Motor:</label>
-                                  <select class="form-control select2" style="width: 100%;">
-                                    <option value="">Seleccione Tipo de Motor:</option>
-                                    <option value="1">1.4</option>
-                                    <option value="2">1.6</option>
-                                    <option value="3">1.8</option>
-                                  </select>
-                                </div>
-
-
-                       
-                       
-                      </div>
-                      <!-- /.col -->
-                    </div>
-
-                    <div class="modal-footer modal-footer-uniform">
-                        <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-info"> Guardar Datos </button>
-                        
-                         
-                        </div>
-                    <!-- /.row -->
-                  </div>
-                  <!-- /.box-body -->
-                </div>
-            
-          </div>
-         
-        </div>
-        <!-- /.modal-content -->
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" >Agregar vehiculo</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
       </div>
- </div><!----->
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tipo de vehiculo</label>
+            <select class="form-control select2" id="selecciontipo" style="width: 100%;">              
+            </select>
+        </div>
+        <div class="form-group">
+          <label>Marca</label>
+            <select class="form-control select2" id="selectmarca" style="width: 100%;">              
+            </select>
+        </div>
+        <div class="form-group">
+          <label>Modelo</label>
+            <select class="form-control select2" id="seleccionmodelo" style="width: 100%;">              
+            </select>
+        </div>
+        <div class="form-group">
+          <label for="añonuevoauto">Dominio</label>
+          <input class="form-control select2" type="text" placeholder="ingrese dominio" id="nuevodominio"style="width: 100%;">              
+        </div>
+        <div class="form-group">
+          <label for="añonuevoauto">Año</label>
+          <input class="form-control select2" type="number" placeholder="Ingrese año" id="añonuevoauto"style="width: 100%;">              
+        </div>
+        <div class="form-group">
+          <label for="añonuevoauto">Motor</label>
+          <input class="form-control select2" type="text" placeholder="ingrese nro motor" id="nuevomotor"style="width: 100%;">              
+        </div>
+        <div class="form-group">
+          <label for="añonuevoauto">Chasis</label>
+          <input class="form-control select2" type="text" placeholder="Ingrese numero chasis" id="nuevochasis"style="width: 100%;">              
+        </div>
+                     
+      </div>
+
+      <div class="modal-footer modal-footer-uniform col-12">
+        <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-info float-right" onclick="cargarvehiculonuevo()"> Guardar Datos </button>       
+      </div>
+                    <!-- /.row -->
+    </div>
+                  <!-- /.box-body -->
+  </div>
+            
+</div>
+         
 
 
 

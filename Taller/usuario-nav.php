@@ -29,7 +29,8 @@
         </span>
         </a>
         <ul class="treeview-menu">
-          <li><a data-toggle="modal" data-target="#consultar-turno" onclick="proximoturnoscliente()"><i class="fa fa-file-text-o"></i>Ver Turnos Asignados</a></li>
+          <li><a data-toggle="modal" data-target="#consultar-turno" onclick="proximoturnoscliente()"><i class="fa fa-eye"></i>Ver Turnos Asignados</a></li>
+          <li><a href="#" data-toggle="modal" data-target="#consultar-solicitudes" onclick="solicitudesactivas()"><i class="fa fa-eye"></i>Ver Solicitudes</a></li>
           <li><a href="#" data-toggle="modal" data-target="#solicitartunro" onclick="cargarautoselect()"><i class="fa fa-pencil"></i>Solicitar Turno</a></li>
         </ul>
       </li>

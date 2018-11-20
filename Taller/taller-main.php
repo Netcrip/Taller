@@ -36,7 +36,7 @@
         </div>
         
         <div class="box-body">
-            <table class="table table-hover table-responsive tablas" id="solturnos">
+            <table class="table table-hover table-responsive tablas" id="solturnostaller">
               <thead>
                 <tr>
                   <th>N° Solicitud</th>
@@ -45,7 +45,7 @@
                   <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody id="Solicitudbody">
+              <tbody id="solturnostallerbody">
             
               </tbody>
             </table>
@@ -104,7 +104,7 @@
         </div>
           <div class="modal-footer modal-footer-uniform">
           <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" id="btnasignarturno"class="btn btn-bold btn-pure btn-primary float-right">Asignar Turno</button>
+          <button type="button" id="btnsolicitarturno"class="btn btn-bold btn-pure btn-primary float-right">Asignar Turno</button>
         </div>
       </div>
     </div>
