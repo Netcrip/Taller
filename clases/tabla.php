@@ -103,7 +103,7 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                 inner join vehiculos on vehiculos.vid = solicitud.vid
                 inner join servicios on servicios.codserv = `solicitud-detalle`.codserv
                 where solicitud.estado!=0 and solicitud.tid=:tid
-                group by vehiculos.dominio");
+                group by solicitud.sid");
                 $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
                 $stmt->execute();
                 echo json_encode($stmt->fetchAll());
@@ -438,7 +438,7 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
         break;
         case 'servicioauto':
             try {
-                $vid=$_GET['vid'];
+                $vid=$_SESSION['vehiculo'];
                 $db   = getDB();
                 $stmt = $db->prepare("select ordenes.oid, talleres.nombre as taller, ordenes.fecha, count(`ordenes-detalle`.codser) as servicio, kilometros.km from ordenes
                 inner join `ordenes-detalle` on ordenes.oid=`ordenes-detalle`.oid
@@ -458,13 +458,13 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
         break;
         case 'getkmydomautocliente':
             try {
-                $vid=$_GET['vid'];
+                $vid=$_SESSION['vehiculo'];
                 $db   = getDB();
-                $stmt = $db->prepare("select IFNULL(MAX(kilometros.km), 'No hay registro') as km, vehiculos.dominio from kilometros
-                inner join vehiculos on kilometros.vid =vehiculos.vid
-                where kilometros.vid=:vid");
+                $stmt = $db->prepare("select vehiculos.vid, vehiculos.dominio, IFNULL(MAX(kilometros.km), 'No hay registro') as km from vehiculos
+                inner join kilometros on kilometros.vid =vehiculos.vid
+                where vehiculos.vid=:vid");
                 $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
-                $stmt->execute();
+                    $stmt->execute();
                     // it worked      
                 echo json_encode($stmt->fetchAll());
             }
@@ -474,7 +474,7 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
         break;
         case 'getproximoserviciocliente':
             try {
-                $vid=$_GET['vid'];
+                $vid=$_SESSION['vehiculo'];
                 $db   = getDB();
                 $stmt = $db->prepare("select min(ordenes.oid) as oid, vehiculos.dominio, ordenes.fecha as servicio from vehiculos
                 left join ordenes on vehiculos.vid =ordenes.vid
@@ -654,6 +654,159 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
             if($stmt->execute())            
                  echo true;
                 // it worke
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'getmisautos':
+            try {
+            $uid=$_SESSION['uid'];
+            $db   = getDB();
+            $stmt = $db->prepare("select vid, dominio from vehiculos
+            where uid=:uid and estado!=0");
+            $stmt->bindParam("uid", $uid, PDO::PARAM_STR);
+            $stmt->execute();
+                // it worked
+            
+            echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'setvehiculo':
+            $_SESSION['vehiculo']= $_GET['vid'];
+           echo $_SESSION['vehiculo'];
+        break;
+        case 'todoslosdatosvehiculo':
+            try {
+                $vid=$_SESSION['vehiculo'];
+                $db   = getDB();
+                $stmt = $db->prepare("select año, dominio, chasis, motor, marca.codmarca, modelo.codmodelo, modelo.nombremodelo, tipovehiculo.codtipo from vehiculos
+                inner join modelo on vehiculos.codmodelo = modelo.codmodelo
+                inner join marca on modelo.codmarca = marca.codmarca
+                inner join tipovehiculo  on tipovehiculo.codtipo =modelo.tipo
+                where vid=:vid");
+                $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+                }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'updateauto':
+            try {
+            $codmodelo=$_GET['codmodelo'];
+            $dominio=$_GET['dominio'];
+            $ano=$_GET['ano'];
+            $motor=$_GET['motor'];
+            $chasis=$_GET['chasis'];
+            $vid=$_SESSION['vehiculo'];
+            $db   = getDB();
+            $stmt = $db->prepare("update vehiculos set codmodelo=:codmodelo,dominio=:dominio,año=:ano,chasis=:chasis,motor=:motor where vid=:vid");
+            $stmt->bindParam("codmodelo", $codmodelo, PDO::PARAM_STR);
+            $stmt->bindParam("dominio", $dominio, PDO::PARAM_STR);
+            $stmt->bindParam("ano", $ano, PDO::PARAM_STR);
+            $stmt->bindParam("motor", $motor, PDO::PARAM_STR);
+            $stmt->bindParam("chasis", $chasis, PDO::PARAM_STR);
+            $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+            if($stmt->execute())            
+                 echo true;
+                // it worke
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'eliminarauto':
+            try {
+            $vid=$_SESSION['vehiculo'];
+            $db   = getDB();
+            $stmt = $db->prepare("update vehiculos set estado=0 where vid=:vid");
+            $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+            if($stmt->execute()){
+                $_SESSION['vehiculo']=null;
+                echo true;
+            }          
+                
+                // it worke
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'cargarkmcliente':
+             try {
+            $km=$_GET['km'];
+            $vid=$_SESSION['vehiculo'];
+            $fecha=$_GET['fecha'];
+            $db   = getDB();
+            $stmt = $db->prepare("insert into kilometros (km,vid,fecha) values (:km,:vid,:fecha)");
+            $stmt->bindParam("km", $km, PDO::PARAM_STR);
+            $stmt->bindParam("vid", $vid, PDO::PARAM_STR);
+            $stmt->bindParam("fecha", $fecha, PDO::PARAM_STR);
+            if($stmt->execute())
+                echo true;
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+                
+        break;
+        case 'talleresadministrador':
+            try {
+                $db   = getDB();
+                $stmt = $db->prepare("select tid, nombre, telefono, calle, nro from talleres where estado!=0");
+                $stmt->execute();
+                echo json_encode($stmt->fetchAll());
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'serviciosadministrado':
+            try {
+                $db   = getDB();
+                $stmt = $db->prepare("select servicios.codserv, nombre, servicios.descripcion from servicios where estado!=0");
+                $stmt->execute();
+                echo json_encode($stmt->fetchAll());
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'nuevoservicio':
+            try {
+                $nombre=$_GET['nombre'];
+                $desc=$_GET['desc'];
+                $db   = getDB();
+                $stmt = $db->prepare("insert into servicios (nombre, descripcion) values (:nombre, :descripcion) ");
+                $stmt->bindParam("nombre", $nombre, PDO::PARAM_STR);
+                $stmt->bindParam("descripcion", $desc, PDO::PARAM_STR);
+                if($stmt->execute())
+                    echo true;
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'eliminarservicioadm':
+            try {
+                $codserv=$_GET['codserv'];
+                $db   = getDB();
+                $stmt = $db->prepare("update servicios set estado=0 where codserv=:codserv");
+                $stmt->bindParam("codserv", $codserv, PDO::PARAM_STR);
+                if($stmt->execute())
+                    echo true;
+
             }
             catch (PDOException $e) {
                     echo '{"error":{"text":' . $e->getMessage() . '}}';

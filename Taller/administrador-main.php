@@ -5,76 +5,46 @@
 </section>
 <div class="collapse" id="Administracion">
   <section>
-      <div class="box">
-          <h2>Administrar Talleres</h2>
-      </div>
-      <div class="box-body ">
-          <table class="table table-hover table-responsive tablas" id="talleres">
-                <thead>
-                  <tr>
-                    <th>Id Taller</th>
-                    <th>Nombre</th>
-                    <th>Direcciopm</th>
-                    <th>Telefono</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php
-                    /* FetchAll foreach with edit and delete using Ajax */
-                    $sth=$tablas->gettablataller();
-                    $thservicio= $sth->fetchAll();
-                    if($sth->rowCount()):
-                    foreach($thservicio as $row){ ?>
-                      <tr>
-                        <td><?php echo $row['tid']; ?></td>
-                        <td><?php echo $row['calle']; ?></td>
-                        <td><?php echo $row['calle'];?> <?php echo $row['nro']; ?></td>
-                        <td><?php echo $row['telefono']; ?></td>
-                        <td> <a href="#" data-toggle="modal" data-target="#editar-servicio"> <span class="label bg-green"><i class="fa fa-pencil"></i></span></a>
-                              <a href="#" class="eliminarServicio"> <span class="label label-danger"><i class="fa fa-ban"></i></span></a>
-                        </td>
-                      </tr>
-                    <?php }  ?>
-                  <?php endif;  ?>
-                </tbody>
-          </table>
-      </div>
+    <div class="box">
+      <h2>Administrar Talleres</h2>
+    </div>
+    <div class="box-body ">
+    <table class="table table-hover table-responsive tablas" id="talleresadministrador">
+      <thead>
+        <tr>
+          <th>Id Taller</th>
+          <th>Nombre</th>
+          <th>Direccion</th>
+          <th>Telefono</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="talleresadministradorbody">
+      </tbody>
+    </table>
+  </div>
         <!-- Tabla para -->   
-        <div class="box">
-          <h2>Administrar Servicios</h2>
-        </div>
-        <div class="box-body">
-            <table class="table table-hover table-responsive tablas" id="solturnos">
-              <thead>
-                <tr>
-                  <th>Id servicio</th>
-                  <th>Nombre</th>
-                  <th>Tipo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-              <?php
-                /* FetchAll foreach with edit and delete using Ajax */
-                $sth=$tablas->gettablaservicio();
-                $thservicio= $sth->fetchAll();
-                if($sth->rowCount()):
-                  foreach($thservicio as $row){ ?>
-                    <tr>
-                      <td><?php echo $row['codserv']; ?></td>
-                      <td><?php echo $row['nombre']; ?></td>
-                      <td><?php echo $row['descripcion']; ?></td>
-                      <td> <a href="#" data-toggle="modal" data-target="#editar-servicio"> <span class="label bg-green"><i class="fa fa-pencil"></i></span></a>
-                            <a href="#" class="eliminarServicio"> <span class="label label-danger"><i class="fa fa-ban"></i></span></a>
-                      </td>
-                    </tr>
-                  <?php }  ?>
-                <?php endif;?>
-                </tbody>
-            </table>
-        </div>
+  <div class="box">
+    <h2>Administrar Servicios</h2>
+  </div>
+  <div class="box-body">
+    <table class="table table-hover table-responsive tablas" id="tablaservicioadministrador">
+      <thead >
+        <tr>
+          <th>Id servicio</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody  id="tablaservicioadministradorbody">
+  
+      </tbody>
+    </table>
+  </div>
 
+  </section>
+</div>
 
 
 <div class="modal center-modal fade" id="nuevo-taller" tabindex="-1" style="display: block;">
@@ -137,7 +107,7 @@
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-        <h5 class="modal-title">Nuevo Turno</h5>
+        <h5 class="modal-title">Alta de servicio</h5>
         <button type="button" class="close" data-dismiss="modal">
 				  <span aria-hidden="true">×</span>
 				</button>
@@ -146,27 +116,20 @@
         <div class="col-md-12 col-12">
           <form action="">
             <div class="form-group">
-              <input type="text" class="form-control" disabled  placeholder="AF-352-LS" > 
+              <label for="nombreservicio">Nombre del servicio</label>
+              <input type="text" class="form-control" id="nombreservicio"   > 
             </div>
             <div class="form-group">
-                  <label>Taller</label>
-                  <select class="form-control select2" style="width: 100%;">
-                    <option value="">Seleccione Taller:</option>
-                    <option >T1</option>
-                    <option >T2</option>
-                    <option >T3</option>
-                  </select>
+              <label for="descripcionservicio">Descripcion del servicio</label>
+              <input type="text" class="form-control" id="descripcionservicio"   > 
             </div>
-            <div class="form-group">
-              <input class="form-control" type="date" value="2011-08-19" id="fecha">
-              <input class="form-control" type="time" value="13:45:00" id="hora">
-            </div>
+          
           </form>
         </div>
 			</div>
-      <div class="modal-footer modal-footer-uniform">
+      <div class="modal-footer modal-footer-uniform col-12">
         <button type="button" class="btn btn-bold btn-pure btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-bold btn-pure btn-primary float-right">Save changes</button>
+        <button type="button" class="btn btn-bold btn-pure btn-primary float-right" onclick="nuevoserviciosadministrador()">Crear servicio</button>
 			</div>
 		</div>
 	</div>
@@ -307,5 +270,3 @@
 	</div>
 </div>
 
-  </section>
-</div>

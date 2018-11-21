@@ -1,5 +1,6 @@
 jQuery(document).ready(function() 
 {
+  
     /*********************feCha */
     d=new Date();
     m=d.getUTCMonth()+1
@@ -14,6 +15,10 @@ jQuery(document).ready(function()
     getclienteproximoservicio();
     cargartipo();
     cargarmarca();
+    listarmisautos();
+    setInterval(revisar, 1000);
+    cargarserviciosadministrador();
+    cargartalleresadministrador();
    
     $('#tunroscrollcliente').slimScroll({
       height: '150px'
@@ -72,30 +77,7 @@ jQuery(document).ready(function()
           }
       });
   });
-  $('#cancelarturno').click(function(){
-      swal({
-          title: "¿Quiere eliminar el Turno?",
-          text: "Una vez eliminado, Tendra que sacar uno nuevo",
-          icon: "warning",
-          buttons: true,
-          dangerMode: true,
-        })
-        .then((willDelete) => {
-          if (willDelete) {
-            swal({
-              title:"Listo!",
-              text:"ya no tienes mas turno", 
-              icon: "success",
-            });
-          } else {
-            swal({   
-                title:"!Su turno continua agendado¡", 
-                text:" lo estaremos esperando...", 
-                  icon: "error"});
-          }
-        });
-  });
-
+  
   $('.eliminarorden').click(function(){
     swal({
         title: "¿Quiere eliminar el Orden?",
@@ -189,14 +171,7 @@ jQuery(document).ready(function()
   });
 
 
-  $('#cargarkm').click(function(){
-      swal({
-          title:"Ingrese el Kilometraje",
-          content: "input",
-        }).then((value) => {
-          swal(`Se modifico el Kilometraje a: ${value} Km`);
-        });
-  });
+
 
 
 
@@ -282,13 +257,22 @@ $("#listadetaller").change(cargardatostaller);
 $("#selectmarca").change(cargarmodelo);
 $("#selecciontipo").change(cargarmodelo);
 
+$("#editarselectmarca").change(cargarmodeloeditar);
+$("#editarselecciontipo").change(cargarmodeloeditar);
+
+$("#editarseleccionmodelo").change(habilitarbotonupdate);
+$("#editarnuevodominio").change(habilitarbotonupdate);
+$("#editarañonuevoauto").change(habilitarbotonupdate);
+$("#editarnuevomotor").change(habilitarbotonupdate);
+$("#editarnuevochasis").change(habilitarbotonupdate);
+
 }) ///fin load
 
 
 
 
-
 /****funciones de ajax */
+
 
 
 function getsesion(){
@@ -862,31 +846,29 @@ function cumplimentarorden($oid,$tipo,$vid){
 //cliente
 
 function getdatosactualautocliente(){
-$vid=1;
-$.ajax({
-  url: "../clases/tabla.php",
-  method: "GET",
-  async: true,
-  data: {funcion: "getkmydomautocliente",vid:$vid},
-  dataType: "json",
-  success: function(respuesta) {     
-      if(respuesta != null){
-          $("#dominioautocliente").text(respuesta[0].dominio);
-          $("#kmautocliente").text(respuesta[0].km);
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "getkmydomautocliente"},
+    dataType: "json",
+    success: function(respuesta) {     
+        if(respuesta != null){
+            $("#dominioautocliente").text(respuesta[0].dominio);
+            $("#kmautocliente").text(respuesta[0].km);
+        }
+        
       }
-      
-    }
-});
+  });
 
 }
 
 function getclienteproximoservicio(){
-$vid=2;
 $.ajax({
   url: "../clases/tabla.php",
   method: "GET",
   async: true,
-  data: {funcion: "getproximoserviciocliente",vid:$vid},
+  data: {funcion: "getproximoserviciocliente"},
   dataType: "json",
   success: function(respuesta) {   
       if(respuesta != null){
@@ -894,7 +876,8 @@ $.ajax({
           $("#proximoserviciocliente").text("No registra proximo servicio");
         }
         else {
-          
+          ordendeservicio
+            $("#ordendeservicio").val(respuesta[0].oid);
             $("#proximoserviciocliente").text(respuesta[0].servicio);
           
           
@@ -946,24 +929,30 @@ function proximoturnoscliente(){
 }
 
 function cargarordenescliente(){
-  $vid=1;
+  
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
     async: true,
-    data: {funcion: "servicioauto",vid:$vid},
+    data: {funcion: "servicioauto"},
     dataType: "json",
-    success: function(respuesta) {
+    success: function(respuesta) {;
       if ( $.fn.dataTable.isDataTable( '#ordenescliente') ) {
         table = $('#ordenescliente').DataTable();
         table.destroy();
       }
       if(respuesta != null && $.isArray(respuesta)){
-        $('#ordenesclientebody').html("");      
+        $('#ordenesclientebody').html("");
+        if(respuesta[0].oid==null){
+          $('#ordenesclientebody').html("No registra");
+        }   
+        else{
+
+           
             $.each(respuesta, function(index, value){ 
                 $("#ordenesclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.taller+ "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.fecha +'</td><td>'+value.servicio+'</td><td >'+value.km+'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="verdetalleordenclieten('+value.oid+')"> <span class="label bg-info"><i class="fa fa-eye"></i></span></a></span></a></td></tr>');
             });
-          
+        } 
             $('#ordenescliente').DataTable( {
               dom: 'Bfrtip',
               buttons: [
@@ -983,7 +972,6 @@ function cargarordenescliente(){
 }
 
 function cargarautoselect(){
-  $vid=1;
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
@@ -1397,4 +1385,506 @@ function cargarvehiculonuevo(){
       }
     }
   }
+}
+
+function listarmisautos(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "getmisautos"},
+    dataType: "json",
+    success: function(respuesta){ 
+      if(respuesta != null){ 
+        $('#listadevehiculoscliente').empty(); 
+        $.each(respuesta, function(index, value){ 
+          
+          $('#listadevehiculoscliente').append('<li ><a href="#" onclick="setvehiculo('+value.vid+')"><i class="fa fa-car"></i>'+value.dominio+'</a></li>');
+                     
+        })
+      }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+}
+
+function setvehiculo($vid){ 
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "setvehiculo",vid:$vid},
+    dataType: "json",
+    success: function(respuesta){ 
+  }
+})
+getdatosactualautocliente();
+cargarordenescliente();
+getclienteproximoservicio();
+}
+
+function editarautotipo(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "selecttipovehiculo"},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){ 
+        $('#editarselecciontipo').empty(); 
+            $.each(respuesta, function(index, value){ 
+              $('#editarselecciontipo').append($('<option>', {
+                value: value.codtipo,
+                text: value.tipo
+            }));
+            });
+          
+            
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+
+}
+
+function editarautomarca(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "selectmarca"},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){ 
+        $('#editarselectmarca').empty(); 
+        $.each(respuesta, function(index, value){ 
+            $('#editarselectmarca').append($('<option>', {
+                value: value.codmarca,
+                text: value.nombre
+          }));
+        });
+          
+            
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+  })
+}
+
+function cargarmodeloeditar(){
+  $codtipo=$("#editarselecciontipo").val()
+  $codmarca=$("#editarselectmarca").val()
+  if($codtipo!="" || $codmarca!=""){
+    $.ajax({
+      url: "../clases/tabla.php",
+      method: "GET",
+      async: true,
+      data: {funcion: "selectmodelo",codmarca:$codmarca,codtipo:$codtipo},
+      dataType: "json",
+      success: function(respuesta) {
+        if(respuesta != null){ 
+          $('#editarseleccionmodelo').empty(); 
+          $('#editarseleccionmodelo').append($('<option>', {
+            value:"",
+            text: "seleccionar el modelo",
+            hidden: true,
+            selected: true
+        }));
+              $.each(respuesta, function(index, value){ 
+                $('#editarseleccionmodelo').append($('<option>', {
+                  value: value.codmodelo,
+                  text: value.nombremodelo
+              }));
+              });
+            
+              
+          }
+        else{
+          console.log("salio error")
+        } 
+    }
+  })
+  }
+}
+
+
+function todoslosdatosvehiculo(){
+  editarautomarca();
+  editarautotipo();
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "todoslosdatosvehiculo"},
+    dataType: "json",
+    success: function(respuesta){ 
+      $('#editarseleccionmodelo').empty(); 
+
+      $('#editarselecciontipo option[value='+respuesta[0].codtipo+']').prop("selected", true);
+      $('#editarselectmarca option[value='+respuesta[0].codmarca+']').prop("selected", true);
+      $('#editarseleccionmodelo').append($('<option>', {
+        value: respuesta[0].codmodelo,
+        text: respuesta[0].nombremodelo,
+        hidden: true,
+        selected: true
+    }));
+    $("#editarnuevodominio").val(respuesta[0].dominio);
+    $("#editarañonuevoauto").val(respuesta[0].año);
+    $("#editarnuevomotor").val(respuesta[0].motor);
+    $("#editarnuevochasis").val(respuesta[0].chasis);
+    
+  }
+})
+}
+
+
+function editarvehiculocliente(){
+  $codmodelo=$("#editarseleccionmodelo").val()
+  $dominio=$("#editarnuevodominio").val();
+  $ano=$("#editarañonuevoauto").val()
+  $motor=$("#editarnuevomotor").val()
+  $chasis=$("#editarnuevochasis").val()
+  if($codmodelo==null || $codmodelo==""){
+    swal({
+      title: "Seleccione modelo",
+      text: "debe seleccionar un modelo",
+      icon: "error",
+      dangerMode: true,
+    })
+  }
+  else
+  {
+    if($dominio==""){
+      swal({
+        title: "Ingrese dominio",
+        text: "debe ingresar un dominio",
+        icon: "error",
+        dangerMode: true,
+      })
+    }
+    else
+    {
+      if($ano==""){
+        swal({
+          title: "Ingrese un año",
+          text: "debe ingresar un año",
+          icon: "error",
+          dangerMode: true,
+        })
+      }
+      else
+      {
+        if($motor==""){
+          swal({
+            title: "Ingrese un numero de motor",
+            text: "debe ingresar un numero de motor",
+            icon: "error",
+            dangerMode: true,
+          })
+        }
+        else{
+          if($chasis==""){
+            swal({
+              title: "Ingrese numero chasis",
+              text: "debe ingresar un numero de chasis",
+              icon: "error",
+              dangerMode: true,
+            })
+          }
+          else{
+
+            console.log($codmodelo,$dominio,$ano,$motor,$chasis)
+            $.ajax({
+              url: "../clases/tabla.php",
+              method: "GET",
+              async: true,
+              data: {funcion: "updateauto",codmodelo:$codmodelo,dominio:$dominio,ano:$ano,motor:$motor,chasis:$chasis},
+              dataType: "json",
+              success: function(respuesta) {
+                if(respuesta){ 
+                  listarmisautos();
+                  swal({
+                    title: "Actualizo con exito!",
+                    text: "Se ah registrado con exito el vehiculo",
+                    icon: "success",
+                    dangerMode: true,
+                  })
+
+                }
+                else{
+                  console.log("salio error")
+                } 
+              
+              }
+            })
+          }
+        }
+      }
+    }
+  }
+}
+
+function habilitarbotonupdate(){
+  $("#btnactualizarauto").prop('disabled', false);
+}
+
+function eliminarautocliente(){
+  swal({
+    title: "¿Quiere eliminar el vehiculo?",
+    text: "Una vez eliminado, no podra acceder a sus datos",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      $.ajax({
+        url: "../clases/tabla.php",
+        method: "GET",
+        async: true,
+        data: {funcion: "eliminarauto"},
+        dataType: "json",
+        success: function(respuesta) {
+          if(respuesta){
+            listarmisautos();
+            getdatosactualautocliente();
+            getclienteproximoservicio();
+            swal({
+              title: "Eliminado",
+              text: "Se ah eliminado el vehiculo",
+              icon: "success",
+              dangerMode: true,
+            })
+          } 
+      }
+      })
+    } else {
+      swal({   
+          title:"!Cancelado¡", 
+            icon: "error"});
+    }
+  });
+ 
+}
+
+function revisar(){
+  if($("#dominioautocliente").text()==""){
+    desabilitar();
+  }
+  else{
+    abilitar();
+  }
+}
+
+function desabilitar(){
+  $("#usuariodato1").prop("hidden",true);
+  $("#usuariodato2").prop("hidden",true);
+  $("#Seleccionevehiculo").prop("hidden",false);
+}
+function abilitar(){
+  $("#usuariodato1").prop("hidden",false);
+  $("#usuariodato2").prop("hidden",false);
+  $("#Seleccionevehiculo").prop("hidden",true);
+}
+
+function cargarkmcliente(){
+  d=new Date()
+  $fecha=d.getFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getDate()
+  swal({
+    title:"Ingrese el Kilometraje",
+    content: "input",
+  }).then((value) => {
+    if(value!="" && $.isNumeric(value)){
+      $.ajax({
+        url: "../clases/tabla.php",
+        method: "GET",
+        async: true,
+        data: {funcion: "cargarkmcliente", km:value,fecha:$fecha},
+        dataType: "json",
+        success: function(respuesta) {
+          if(respuesta){
+            swal(`Se modifico el Kilometraje a: ${value} Km`);
+            getdatosactualautocliente();
+          }
+          
+      }
+      })
+    }
+    
+  });
+  
+}
+
+
+function cargarserviciosadministrador(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "serviciosadministrado"},
+    dataType: "json",
+    success: function(respuesta) {
+      if ( $.fn.dataTable.isDataTable( '#tablaservicioadministrador') ) {
+        table = $('#tablaservicioadministrador').DataTable();
+        table.destroy();
+      }
+      if(respuesta != null && $.isArray(respuesta)){
+        $('#tablaservicioadministradorbody').html("");
+        if(respuesta[0].codserv==null){
+          $('#tablaservicioadministradorbody').html("Sin servicios cargados");
+        }   
+        else{
+            $.each(respuesta, function(index, value){ 
+                $("#tablaservicioadministradorbody").append("<tr><td>" + value.codserv + "</td><td>" + value.nombre+ "</td><td><span class='text-muted'>" + value.descripcion +'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="editarservicioadm('+value.codserv+')"> <span class="label bg-info"><i class="fa fa-pencil"></i></span></a><a href="#" onclick="eliminarservicioadm('+value.codserv+')"> <span class="label bg-danger"><i class="fa fa-ban"></i></span></a></span></a></td></tr>');
+            });
+        } 
+            $('#tablaservicioadministrador').DataTable( {
+              dom: 'Bfrtip',
+              buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5',
+                  'pdfHtml5',
+                  'print'
+              ]
+              });
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+
+}
+
+function cargartalleresadministrador(){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "talleresadministrador"},
+    dataType: "json",
+    success: function(respuesta) {
+      if ( $.fn.dataTable.isDataTable( '#talleresadministrador') ) {
+        table = $('#talleresadministrador').DataTable();
+        table.destroy();
+      }
+      if(respuesta != null && $.isArray(respuesta)){
+        $('#talleresadministradorbody').html("");
+        if(respuesta[0].tid==null){
+          $('#talleresadministradorbody').html("Sin servicios cargados");
+        }   
+        else{
+            $.each(respuesta, function(index, value){ 
+                $("#talleresadministradorbody").append("<tr><td>" + value.tid + "</td><td>" + value.nombre+ "</td><td><span class='text-muted'>" + value.calle+" "+value.nro+'</td><td>' + value.telefono + '</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="editarservicioadm('+value.codserv+')"> <span class="label bg-info"><i class="fa fa-pencil"></i></span></a><a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="eliminarservicioadm('+value.codserv+')"> <span class="label bg-danger"><i class="fa fa-ban"></i></span></a></span></a></td></tr>');
+            });
+        } 
+            $('#talleresadministrador').DataTable( {
+              dom: 'Bfrtip',
+              buttons: [
+                  'copyHtml5',
+                  'excelHtml5',
+                  'csvHtml5',
+                  'pdfHtml5',
+                  'print'
+              ]
+              });
+        }
+      else{
+        console.log("salio error")
+      } 
+  }
+})
+
+}
+
+function nuevoserviciosadministrador(){
+  var $nombre=$("#nombreservicio").val();
+  var $desc=$("#descripcionservicio").val();
+  if($nombre==""){
+    swal({
+      title: "Ingrese un numbre",
+      text: "debe ingresar un nombre",
+      icon: "error",
+      dangerMode: false,
+    })
+  }
+  else{
+    if($desc==""){
+      swal({
+        title: "Ingrese una descripcion",
+        text: "debe ingresar una descripcion",
+        icon: "error",
+        dangerMode: false,
+      })
+    }
+    else{
+      $.ajax({
+        url: "../clases/tabla.php",
+        method: "GET",
+        async: true,
+        data: {funcion: "nuevoservicio", nombre:$nombre,desc:$desc},
+        dataType: "json",
+        success: function(respuesta) {
+          if(respuesta){
+            swal({
+              title: "Nuevo servicio",
+              text: "se encuentra disponible el nuevo servicio",
+              icon: "sucess",
+              dangerMode: true,
+            })
+            cargarserviciosadministrador();
+          }
+          
+      }
+      })
+    }
+  }
+ 
+}
+function nuevotalleradministrador(){
+
+}
+
+function eliminarservicioadm($codserv){
+  swal({
+    title: "¿Quiere eliminar el vehiculo?",
+    text: "Una vez eliminado, no podra acceder a sus datos",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      $.ajax({
+        url: "../clases/tabla.php",
+        method: "GET",
+        async: true,
+        data: {funcion: "eliminarservicioadm", codserv:$codserv},
+        dataType: "json",
+        success: function(respuesta) {
+          if(respuesta){
+            swal({
+              title: "Se elimino servicio",
+              text: "Se elimino el servicio",
+              icon: "sucess",
+              dangerMode: true,
+            })
+            cargarserviciosadministrador();
+          }
+      }
+      })
+    } else {
+      swal({   
+          title:"!Cancelado¡", 
+            icon: "error"});
+    }
+  });
 }

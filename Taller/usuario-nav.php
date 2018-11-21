@@ -13,10 +13,7 @@
         <i class="fa fa-angle-right pull-right"></i>
         </span>     
       </a>        
-      <ul class="treeview-menu">
-        <li><a ><i class="fa fa-car"></i>FFG-223</a></li>
-        <li><a  ><i class="fa fa-truck"></i>AB-335-AL</a></li>
-        <li><a ><i class="fa fa-motorcycle"></i>A335BAL</a></li>
+      <ul class="treeview-menu" id="listadevehiculoscliente">
       </ul>
     </li>
     <li class="header nav-small-cap">TURNOS</li>
