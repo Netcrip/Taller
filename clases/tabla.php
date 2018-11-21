@@ -812,6 +812,217 @@ if(isset($_GET['funcion']) && !empty($_GET['funcion'])) {
                     echo '{"error":{"text":' . $e->getMessage() . '}}';
             }
         break;
+        case 'datosadministradortaller':
+            try {
+                $db   = getDB();
+                $stmt = $db->prepare("select usuarios.uid, persona.nombre , persona.apellido from usuarios 
+                inner join persona on persona.uid= usuarios.uid where usuarios.estado!=0 and usuarios.uid not in(select uid from `taller-usuario` where estado!=0)");
+                $stmt->execute();
+                echo json_encode($stmt->fetchAll());
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'nuevoservicioeditar':
+            try {
+                $nombre=$_GET['nombre'];
+                $desc=$_GET['desc'];
+                $codserv=$_GET['codserv'];
+                $db   = getDB();
+                $stmt = $db->prepare("update servicios set nombre=:nombre, descripcion=:descripcion where codserv=:codserv");
+                $stmt->bindParam("nombre", $nombre, PDO::PARAM_STR);
+                $stmt->bindParam("descripcion", $desc, PDO::PARAM_STR);
+                $stmt->bindParam("codserv", $codserv, PDO::PARAM_STR);
+                if($stmt->execute())
+                    echo true;
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'todoslosservicios':
+            try {
+                $db   = getDB();
+                $stmt = $db->prepare("select servicios.codserv, servicios.nombre from servicios 
+                where estado!=0");
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'todosloscp':
+            try {
+                $loc=$_GET['text'];
+                $db   = getDB();
+                $stmt = $db->prepare("select codlocalidad, cp, localidad from cp where localidad like :loc");
+                $stmt->bindParam("loc", $loc, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'altanuevotaller':
+            try {
+                $select=$_GET['select'];
+                $nombre=$_GET['nombre'];
+                $telefono=$_GET['telefono'];
+                $email=$_GET['email'];
+                $calle=$_GET['calle'];
+                $nro=$_GET['nro'];
+                $codloca=$_GET['codloca'];
+                $uid=$_GET['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("insert into talleres (nombre, telefono,email,calle,nro,codloca) values (:nombre, :telefono,:email,:calle,:nro,:codloca)");
+                $stmt->bindParam("nombre", $nombre, PDO::PARAM_STR);
+                $stmt->bindParam("telefono", $telefono, PDO::PARAM_STR);
+                $stmt->bindParam("email", $email, PDO::PARAM_STR);
+                $stmt->bindParam("calle", $calle, PDO::PARAM_STR);
+                $stmt->bindParam("nro", $nro, PDO::PARAM_STR);
+                $stmt->bindParam("codloca", $codloca, PDO::PARAM_STR);
+                $stmt->execute();
+                $temp = $db->lastInsertId();
+                    foreach($select as $cod){
+                        $stmt2 = $db->prepare("insert into `servicio-taller` (tid,codserv) values (:tid,:codserv)");
+                        $stmt2->bindParam("tid", $temp, PDO::PARAM_STR);
+                        $stmt2->bindParam("codserv", $cod, PDO::PARAM_STR);
+                        $stmt2->execute();
+                    }
+                    $stmt3 = $db->prepare("insert into `taller-usuario` (tid,uid) values (:tid,:uid)");
+                    $stmt3->bindParam("tid", $temp, PDO::PARAM_STR);
+                    $stmt3->bindParam("uid", $uid, PDO::PARAM_STR);
+                        if ($stmt3->execute()) { 
+                            // it worked
+                            $insertid="si";
+                        } 
+                if($insertid=="si"){
+                    echo true;
+                }
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'getdatostaller':
+            try {
+                $tid=$_GET['tid'];
+                $db   = getDB();
+                $stmt = $db->prepare("select `taller-usuario`.uid, persona.nombre, persona.apellido , talleres.nombre as nomtaller, talleres.telefono,talleres.email,talleres.calle,talleres.nro, cp.localidad from talleres
+                inner join cp on talleres.codloca =cp.codlocalidad 
+                inner join `taller-usuario` on `taller-usuario`.tid=talleres.tid
+                inner join persona on persona.uid = `taller-usuario`.uid where talleres.tid=:tid");
+                $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt->execute();
+                    // it worked
+                
+                echo json_encode($stmt->fetchAll());
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'editarnuevotallersinloca':
+            try {
+                $tid=$_GET['tid'];
+                $nombre=$_GET['nombre'];
+                $telefono=$_GET['telefono'];
+                $email=$_GET['email'];
+                $calle=$_GET['calle'];
+                $nro=$_GET['nro'];
+                $uid=$_GET['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("update talleres set nombre=:nombre, telefono=:telefono, email=:email, calle=:calle, nro=:nro where tid=:tid");
+                $stmt->bindParam("nombre", $nombre, PDO::PARAM_STR);
+                $stmt->bindParam("telefono", $telefono, PDO::PARAM_STR);
+                $stmt->bindParam("email", $email, PDO::PARAM_STR);
+                $stmt->bindParam("calle", $calle, PDO::PARAM_STR);
+                $stmt->bindParam("nro", $nro, PDO::PARAM_STR);
+                $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt->execute();
+                $stmt3 = $db->prepare("update  `taller-usuario`  set uid=:uid where tid=:tid");
+                $stmt3->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt3->bindParam("uid", $uid, PDO::PARAM_STR);
+                if ($stmt3->execute()) { 
+                    // it worked
+                    $insertid="si";
+                } 
+                      
+                if($insertid=="si"){
+                    echo true;
+                }
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'editarnuevotaller':
+            try {
+                $tid=$_GET['tid'];
+                $nombre=$_GET['nombre'];
+                $telefono=$_GET['telefono'];
+                $email=$_GET['email'];
+                $calle=$_GET['calle'];
+                $nro=$_GET['nro'];
+                $codloca=$_GET['codloca'];
+                $uid=$_GET['uid'];
+                $db   = getDB();
+                $stmt = $db->prepare("update talleres set nombre=:nombre, telefono=:telefono, email=:email, calle=:calle, nro=:nro,codloca=:codloca where tid=:tid");
+                $stmt->bindParam("nombre", $nombre, PDO::PARAM_STR);
+                $stmt->bindParam("telefono", $telefono, PDO::PARAM_STR);
+                $stmt->bindParam("email", $email, PDO::PARAM_STR);
+                $stmt->bindParam("calle", $calle, PDO::PARAM_STR);
+                $stmt->bindParam("nro", $nro, PDO::PARAM_STR);
+                $stmt->bindParam("codloca", $codloca, PDO::PARAM_STR);
+                $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+                $stmt->execute();
+                    $stmt3 = $db->prepare("update  `taller-usuario`  set uid=:uid where tid=:tid");
+                    $stmt3->bindParam("tid", $tid, PDO::PARAM_STR);
+                    $stmt3->bindParam("uid", $uid, PDO::PARAM_STR);
+                        if ($stmt3->execute()) { 
+                            // it worked
+                            $insertid="si";
+                        } 
+                if($insertid=="si"){
+                    echo true;
+                }
+
+            }
+            catch (PDOException $e) {
+                    echo '{"error":{"text":' . $e->getMessage() . '}}';
+            }
+        break;
+        case 'eliminartaller':
+        try {
+            $tid=$_GET['tid'];
+            $db   = getDB();
+            $stmt = $db->prepare("update talleres set estado=0 where tid=:tid");
+            $stmt->bindParam("tid", $tid, PDO::PARAM_STR);
+            $stmt->execute();
+            $stmt2 = $db->prepare("delete from `taller-usuario` where tid=:tid");
+            $stmt2->bindParam("tid", $tid, PDO::PARAM_STR);
+            if($stmt2->execute())
+                echo true;
+            
+
+        }
+        catch (PDOException $e) {
+                echo '{"error":{"text":' . $e->getMessage() . '}}';
+        }
+    break;
+     
+     
     }
 }
 ?>

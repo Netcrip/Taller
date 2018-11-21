@@ -8,7 +8,7 @@
     </a>
   </li>
       <li class="treeview active ">
-        <a href="#" data-toggle="modal" data-target="#nuevo-taller">
+        <a href="#" data-toggle="modal" onclick="cargardamdtallernuevo()" data-target="#nuevo-taller">
           <i class="fa fa-pencil"></i>
           <span>Nuevo Tallere</span>
           </span> 

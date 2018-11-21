@@ -1,3 +1,3 @@
 <footer>
-<p>Create by Netcrip®</p></footer>
+<p>Create by Emanuel Garcia - Damian Corvalan®</p></footer>
 </body>

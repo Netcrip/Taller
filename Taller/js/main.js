@@ -2,6 +2,7 @@ jQuery(document).ready(function()
 {
   
     /*********************feCha */
+    
     d=new Date();
     m=d.getUTCMonth()+1
     $fecha=d.getDate()+'/'+m+'/'+d.getFullYear()
@@ -19,6 +20,8 @@ jQuery(document).ready(function()
     setInterval(revisar, 1000);
     cargarserviciosadministrador();
     cargartalleresadministrador();
+
+  
    
     $('#tunroscrollcliente').slimScroll({
       height: '150px'
@@ -52,6 +55,19 @@ jQuery(document).ready(function()
     $('#modificarturnochek').slimScroll({
       height: '150px'
     });
+    $('#nuevotallerservicios').slimScroll({
+      height: '150px'
+    });
+    $('#localidadchek').slimScroll({
+      height: '100px'
+    });
+    $('#editarlocalidadchek').slimScroll({
+      height: '100px'
+    });
+    
+    $('.modal').on('hidden.bs.modal', function(){
+      $(this).removeData('bs.modal');
+  });
    
     
     
@@ -171,10 +187,6 @@ jQuery(document).ready(function()
   });
 
 
-
-
-
-
   $("#btnasignarturno").click(asignarorden)
 
 ////------------------botones con funciones de ajax-------------------
@@ -182,7 +194,8 @@ jQuery(document).ready(function()
   $("#formasignarturnonuevo").submit(function(e){
       e.preventDefault();
       var select = [];
-      var $tid =tengotaller();
+      tengotaller();
+      var $tid =$("#nrodetaller").text();
       $dominio=$("#dominionuevoturno").val();
       $fecha=$("#fechaordennuevoturno").val();
       $horario=$("#horaordennuevoturno").val();
@@ -265,6 +278,54 @@ $("#editarnuevodominio").change(habilitarbotonupdate);
 $("#editarañonuevoauto").change(habilitarbotonupdate);
 $("#editarnuevomotor").change(habilitarbotonupdate);
 $("#editarnuevochasis").change(habilitarbotonupdate);
+$("#nombreservicioeditar").change( function(){
+  $("#btneditarservicioadm").prop( "disabled", false );
+});
+
+$("#descripcionservicioeditar").change( function(){
+  $("#btneditarservicioadm").prop( "disabled", false );
+});
+$("#localidadnuevotaller").change( function(){
+  $("#cpnuevotaller").val($('#localidadnuevotaller option:selected').val());
+});
+
+$("#localidadnueva").keyup(cargarlocalidad);
+$("#editarlocalidadnueva").keyup(editarcargarlocalidad);
+
+
+$("#localidadchek").on('click', 'input[name="checkserviciotallersolicitud"]', function() {      
+  $('input[name="checkserviciotallersolicitud"]').not(this).prop('checked', false);      
+});
+$("#editarlocalidadchek").on('click', 'input[name="editarcheckserviciotallersolicitud"]', function() {      
+  $('input[name="editarcheckserviciotallersolicitud"]').not(this).prop('checked', false);
+  $("#grupolocalidadcambiar").prop("hidden",true);
+  $("#btneditartaller").prop("hidden",false);
+  $("#editartallerlocalidad").val("");
+});
+
+
+$("#editarseleccionadministrador").change( function(){
+  $("#btneditartaller").prop( "disabled", false );
+});
+$("#editarnumeronuevotaller").change( function(){
+  $("#btneditartaller").prop( "disabled", false );
+});
+$("#editarcallenuevotaller").change( function(){
+  $("#btneditartaller").prop( "disabled", false );
+});
+$("#editaremailnuevotaller").change( function(){
+  $("#btneditartaller").prop( "disabled", false );
+});
+$("#editartelnuevotaller").change( function(){
+  $("#btneditartaller").prop( "disabled", false );
+});
+$("#editarnombrenuevotaller").change( function(){
+  $("#btneditartaller").prop( "disabled", false );
+});
+
+
+
+
 
 }) ///fin load
 
@@ -295,7 +356,8 @@ function getsesion(){
 
 function cargarordenesdeservicio(){
   $fecha=$("#fechaparaordenes").val();
-  var $tid =tengotaller();
+  tengotaller();
+  var $tid =$("#nrodetaller").text();
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
@@ -338,7 +400,9 @@ function cargarordenesdeservicio(){
 
 
 function cargarsolicitud(){ 
-  var $tid =tengotaller();
+  tengotaller();
+  var $tid =$("#nrodetaller").text();
+  console.log("tid: "+$tid);
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
@@ -715,7 +779,8 @@ function cargarserviciostaller(){
 }
 
 function btnmodificarserviciotaller(){
-  var $tid =tengotaller();
+  tengotaller();
+  var $tid =$("#nrodetaller").text();
   var $select=[];
   $.each($("input[name='tallerservicioeditar']:checked"), function(){            
     $select.push($(this).val());
@@ -744,22 +809,22 @@ function btnmodificarserviciotaller(){
 }
 
 function tengotaller(){
-  let $tid="A";
   $.ajax({
     url: "../clases/tabla.php",
     method: "GET",
-    async: true,
+    async: false,
     data: {funcion: "tengotaller"},
     dataType: "json",
     success: function(respuesta) {   
         if(respuesta){
-          $tid=respuesta[0].tid;
+          $a= respuesta[0].tid;
+          $("#nrodetaller").text($a)
+          
         
           
         }
     }
   });
-  return $tid;
 }
 
 function cumplimentarorden($oid,$tipo,$vid){
@@ -897,29 +962,17 @@ function proximoturnoscliente(){
     data: {funcion: "proximoturnoscliente"},
     dataType: "json",
     success: function(respuesta) {
-      if ( $.fn.dataTable.isDataTable( '#proximosturnosclientetabla') ) {
-        table = $('#proximosturnosclientetabla').DataTable();
-        table.destroy();
-      }
+    
       if(respuesta != null){
         $('#proximosturnosclientebody').html("");      
             $.each(respuesta, function(index, value){ 
               if(new Date(value.fecha).getTime()> new Date().getTime()){
-                $("#proximosturnosclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td>'+value.servicios+'</td></tr>');
-              }
+                $("#proximosturnosclientebody").append("<tr><td class='d-none d-sm-block'>" + value.oid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td class="d-none d-sm-block">'+value.servicios+'</td></tr>');
+              } 
                
             });
           
-            $('#proximosturnosclientetabla').DataTable( {
-              dom: 'Bfrtip',
-              buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdfHtml5',
-                  'print'
-              ]
-              });
+            
         }
       else{
         console.log("salio error")
@@ -950,7 +1003,7 @@ function cargarordenescliente(){
 
            
             $.each(respuesta, function(index, value){ 
-                $("#ordenesclientebody").append("<tr><td>" + value.oid + "</td><td>" + value.taller+ "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.fecha +'</td><td>'+value.servicio+'</td><td >'+value.km+'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="verdetalleordenclieten('+value.oid+')"> <span class="label bg-info"><i class="fa fa-eye"></i></span></a></span></a></td></tr>');
+                $("#ordenesclientebody").append("<tr><td >" + value.oid + "</td><td>" + value.taller+ "</td><td><span class='text-muted'><i class='fa fa-clock-o'></i>" + value.fecha +'</td><td>'+value.servicio+'</td><td >'+value.km+'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="verdetalleordenclieten('+value.oid+')"> <span class="label bg-info"><i class="fa fa-eye"></i></span></a></span></a></td></tr>');
             });
         } 
             $('#ordenescliente').DataTable( {
@@ -1175,29 +1228,15 @@ function solicitudesactivas(){
     data: {funcion: "solicitudesactivas"},
     dataType: "json",
     success: function(respuesta) {
-      console.log(respuesta)
-      if ( $.fn.dataTable.isDataTable( '#solicitudesclientetabla') ) {
-        table = $('#solicitudesclientetabla').DataTable();
-        table.destroy();
-      }
       if(respuesta != null){
         $('#solicitudesclientebody').html("");      
             $.each(respuesta, function(index, value){ 
-                $("#solicitudesclientebody").append("<tr><td>" + value.sid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td>'+value.servicios+'</td></tr>');
+                $("#solicitudesclientebody").append("<tr><td class='d-none d-sm-block'>" + value.sid + "</td><td>" + value.dominio + "</td><td>" + value.nombre+ "</td><td>" + value.fecha +'</td><td class="d-none d-sm-block">'+value.servicios+'</td></tr>');
               
                
             });
           
-            $('#solicitudesclientetabla').DataTable( {
-              dom: 'Bfrtip',
-              buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdfHtml5',
-                  'print'
-              ]
-              });
+            
         }
       }
     })
@@ -1599,8 +1638,6 @@ function editarvehiculocliente(){
             })
           }
           else{
-
-            console.log($codmodelo,$dominio,$ano,$motor,$chasis)
             $.ajax({
               url: "../clases/tabla.php",
               method: "GET",
@@ -1742,7 +1779,7 @@ function cargarserviciosadministrador(){
         }   
         else{
             $.each(respuesta, function(index, value){ 
-                $("#tablaservicioadministradorbody").append("<tr><td>" + value.codserv + "</td><td>" + value.nombre+ "</td><td><span class='text-muted'>" + value.descripcion +'</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="editarservicioadm('+value.codserv+')"> <span class="label bg-info"><i class="fa fa-pencil"></i></span></a><a href="#" onclick="eliminarservicioadm('+value.codserv+')"> <span class="label bg-danger"><i class="fa fa-ban"></i></span></a></span></a></td></tr>');
+                $("#tablaservicioadministradorbody").append("<tr><td>" + value.codserv + "</td><td>" + value.nombre+ "</td><td><span class='text-muted'>" + value.descripcion +'</td><td> <a href="#" data-toggle="modal" data-target="#editars-servicio" onclick="cargarformularioservicioservicioaeditar('+value.codserv+",'"+value.nombre+"','"+value.descripcion+"'"+')"> <span class="label bg-info"><i class="fa fa-pencil"></i></span></a><a href="#" onclick="eliminarservicioadm('+value.codserv+')"> <span class="label bg-danger"><i class="fa fa-ban"></i></span></a></span></a></td></tr>');
             });
         } 
             $('#tablaservicioadministrador').DataTable( {
@@ -1783,7 +1820,7 @@ function cargartalleresadministrador(){
         }   
         else{
             $.each(respuesta, function(index, value){ 
-                $("#talleresadministradorbody").append("<tr><td>" + value.tid + "</td><td>" + value.nombre+ "</td><td><span class='text-muted'>" + value.calle+" "+value.nro+'</td><td>' + value.telefono + '</td><td> <a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="editarservicioadm('+value.codserv+')"> <span class="label bg-info"><i class="fa fa-pencil"></i></span></a><a href="#" data-toggle="modal" data-target="#ver-ordencliente" onclick="eliminarservicioadm('+value.codserv+')"> <span class="label bg-danger"><i class="fa fa-ban"></i></span></a></span></a></td></tr>');
+                $("#talleresadministradorbody").append("<tr><td>" + value.tid + "</td><td>" + value.nombre+ "</td><td><span class='text-muted'>" + value.calle+" "+value.nro+'</td><td>' + value.telefono + '</td><td> <a href="#" data-toggle="modal" data-target="#editar-talleradm" onclick="cargareditartalleradm('+value.tid+')"> <span class="label bg-info"><i class="fa fa-pencil"></i></span></a><a onclick="eliminartalleradm('+value.tid+')"> <span class="label bg-danger"><i class="fa fa-ban"></i></span></a></span></a></td></tr>');
             });
         } 
             $('#talleresadministrador').DataTable( {
@@ -1837,7 +1874,7 @@ function nuevoserviciosadministrador(){
             swal({
               title: "Nuevo servicio",
               text: "se encuentra disponible el nuevo servicio",
-              icon: "sucess",
+              icon: "success",
               dangerMode: true,
             })
             cargarserviciosadministrador();
@@ -1874,10 +1911,11 @@ function eliminarservicioadm($codserv){
             swal({
               title: "Se elimino servicio",
               text: "Se elimino el servicio",
-              icon: "sucess",
+              icon: "success",
               dangerMode: true,
             })
             cargarserviciosadministrador();
+            $(".modal .close").click();
           }
       }
       })
@@ -1888,3 +1926,516 @@ function eliminarservicioadm($codserv){
     }
   });
 }
+
+function cargarformularioservicioservicioaeditar($codigo,$nombre,$desc){
+ $("#codservicioaditar").val($codigo);
+ $("#nombreservicioeditar").val($nombre);
+ $("#descripcionservicioeditar").val($desc);
+
+}
+function editarnuevoserviciosadministrador($codserv){
+  var $codserv=$("#codservicioaditar").val();
+  var $nombre=$("#nombreservicioeditar").val();
+  var $desc=$("#descripcionservicioeditar").val();
+  if($nombre==""){
+    swal({
+      title: "Ingrese un nombre",
+      text: "debe ingresar un nombre",
+      icon: "error",
+      dangerMode: false,
+    })
+  }
+  else{
+    if($desc==""){
+      swal({
+        title: "Ingrese una descripcion",
+        text: "debe ingresar una descripcion",
+        icon: "error",
+        dangerMode: false,
+      })
+    }
+    else{
+      $.ajax({
+        url: "../clases/tabla.php",
+        method: "GET",
+        async: true,
+        data: {funcion: "nuevoservicioeditar", nombre:$nombre,desc:$desc,codserv:$codserv},
+        dataType: "json",
+        success: function(respuesta) {
+          if(respuesta){
+            swal({
+              title: "Nuevo servicio",
+              text: "se encuentra disponible el nuevo servicio",
+              icon: "success",
+              dangerMode: true,
+            })
+            cargarserviciosadministrador();
+          }
+          
+      }
+      })
+    }
+ }  
+}
+
+function cargardamdtallernuevo(){
+   $.ajax({
+     url: "../clases/tabla.php",
+     method: "GET",
+     async: true,
+     data: {funcion: "datosadministradortaller"},
+     dataType: "json",
+     success: function(respuesta) {
+       if(respuesta != null){
+         $('#seleccionadministrador').empty();
+         $('#seleccionadministrador').append($('<option>', {
+           value:"",
+           text: "seleccione el administrador",
+           hidden: true,
+           selected: true
+       }));
+         $.each(respuesta, function(index, value){ 
+           $('#seleccionadministrador').append($('<option>', {
+             value: value.uid,
+             text: value.nombre+" "+ value.apellido
+         }));
+         });
+      
+         
+       }
+   }
+   })
+   $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "todoslosservicios"},
+    dataType: "json",
+    success: function(respuesta) {
+      $("#nuevotallerservicios").empty();
+      $.each(respuesta, function(index, value){ 
+         $("#nuevotallerservicios").append('<input class="form-check-input col-4" type="checkbox" name="nuevotallerservicioselect"  id="snt'+value.codserv+'" value="'+value.codserv+'"> <label class="form-check-label col-6" for="snt'+value.codserv+'">'+value.nombre+'</label><br>');
+
+      })
+    }
+  })
+ 
+ }
+
+function nuevotaller(){
+let $select=[];
+var regex = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
+$nombre=$("#nombrenuevotaller").val();
+$telefono=$("#telnuevotaller").val();
+$email=$("#emailnuevotaller").val();
+$calle=$("#callenuevotaller").val();
+$nro=$("#numeronuevotaller").val();
+$codloca=$("input[name='checkserviciotallersolicitud']:checked").val();
+$uid=$("#seleccionadministrador").val();
+$.each($("input[name='nuevotallerservicioselect']:checked"), function(){            
+  $select.push($(this).val());
+});
+
+if($nombre==""){
+  swal({
+    title: "Error!",
+    text: "Debe ingresar un nombre",
+    icon: "error",
+    dangerMode: true,
+  })
+}
+else{
+  if($telefono=="" || !$.isNumeric($telefono)){
+    swal({
+      title: "Error!",
+      text: "Debe ingresar un telefono correcto",
+      icon: "error",
+      dangerMode: true,
+    })
+
+  }
+  else{
+    if(!regex.test($email)){
+      swal({
+        title: "Error!",
+        text: "Debe ingresar un email correcto",
+        icon: "error",
+        dangerMode: true,
+      })
+
+    }
+    else{
+      if($calle==""){
+        swal({
+          title: "Error!",
+          text: "Debe indicar una calle",
+          icon: "error",
+          dangerMode: true,
+        })
+      }
+      else{
+        if($nro==""){
+          swal({
+            title: "Error!",
+            text: "Debe indicar una altura",
+            icon: "error",
+            dangerMode: true,
+          })
+        }
+        else{
+          if($codloca==""){
+            swal({
+              title: "Error!",
+              text: "Debe seleccionar una localidad",
+              icon: "error",
+              dangerMode: true,
+            })
+          }
+          else{
+            if($uid==""){
+              swal({
+                title: "Error!",
+                text: "Debe seleccionar un Administrador",
+                icon: "error",
+                dangerMode: true,
+              })
+            }
+            else{
+              if($select.length>0){
+                $.ajax({
+                  url: "../clases/tabla.php",
+                  method: "GET",
+                  async: true,
+                  data: {funcion: "altanuevotaller",select:$select,nombre:$nombre,telefono:$telefono,email:$email,calle:$calle,nro:$nro,codloca:$codloca,uid:$uid},
+                  dataType: "json",
+                  success: function(respuesta) {
+                    if(respuesta){ 
+                      cargartalleresadministrador();
+                      swal({
+                        title: "Creado con exito!",
+                        text: "Se ah registrado con exito el Taller",
+                        icon: "success",
+                        dangerMode: true,
+                      })
+                      $(".modal .close").click();
+                                           
+    
+                    }
+                    else{
+                      console.log("salio error")
+                    } 
+                  
+                  }
+                })
+              }
+              else{
+                swal({
+                  title: "Error!",
+                  text: "Debe seleccionar un servicio al menos",
+                  icon: "error",
+                  dangerMode: true,
+                })
+
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+}
+
+
+
+function cargarlocalidad(){
+  $texto=$("#localidadnueva").val();
+  if($texto.length>3){
+    $.ajax({
+      url: "../clases/tabla.php",
+      method: "GET",
+      async: true,
+      data: {funcion: "todosloscp",text:"%"+$texto+"%"},
+      dataType: "json",
+      success: function(respuesta) {
+        if(respuesta != null){
+          $("#localidadchek").empty();
+          $.each(respuesta, function(index, value){ 
+             $("#localidadchek").append('<input class="form-check-input col-4" type="checkbox" name="checkserviciotallersolicitud"  id="loc'+value.codlocalidad+'" value="'+value.codlocalidad+'"> <label class="form-check-label col-6" for="loc'+value.codlocalidad+'">'+value.localidad+" ("+value.cp+")"+'</label><br>');
+    
+          })
+       
+          
+        }
+    }
+    })
+  }
+  else{
+    $("#localidadchek").empty();
+  }
+ 
+}
+
+function cargareditartalleradm($tid){
+  $.ajax({
+    url: "../clases/tabla.php",
+    method: "GET",
+    async: true,
+    data: {funcion: "getdatostaller",tid:$tid},
+    dataType: "json",
+    success: function(respuesta) {
+      if(respuesta != null){
+        $("#nrotallereditar").val($tid);
+        $("#editarnombrenuevotaller").val(respuesta[0].nomtaller);
+        $("#editartelnuevotaller").val(respuesta[0].telefono);
+        $("#editaremailnuevotaller").val(respuesta[0].email);
+        $("#editarcallenuevotaller").val(respuesta[0].calle);
+        $("#editarnumeronuevotaller").val(respuesta[0].nro);    
+        $("#editartallerlocalidad").val(respuesta[0].localidad);   
+        $('#editarseleccionadministrador').empty();
+        $('#editarseleccionadministrador').append($('<option>', {
+          value: respuesta[0].uid,
+          text:  respuesta[0].nombre+" "+ respuesta[0].apellido,
+          hidden: true,
+          selected: true
+        }));
+        $.ajax({
+          url: "../clases/tabla.php",
+          method: "GET",
+          async: true,
+          data: {funcion: "datosadministradortaller"},
+          dataType: "json",
+          success: function(respuesta) {
+            if(respuesta != null){
+              $.each(respuesta, function(index, value){ 
+                $('#editarseleccionadministrador').append($('<option>', {
+                  value: value.uid,
+                  text: value.nombre+" "+ value.apellido
+              }));
+              });
+           
+              
+            }
+        }
+        })  
+      }
+  }
+  })
+}
+
+function editarcargarlocalidad(){
+  $texto=$("#editarlocalidadnueva").val();
+  if($texto.length>3){
+    $.ajax({
+      url: "../clases/tabla.php",
+      method: "GET",
+      async: true,
+      data: {funcion: "todosloscp",text:"%"+$texto+"%"},
+      dataType: "json",
+      success: function(respuesta) {
+        if(respuesta != null){
+          $("#editarlocalidadchek").empty();
+          $.each(respuesta, function(index, value){ 
+             $("#editarlocalidadchek").append('<input class="form-check-input col-4" type="checkbox" name="editarcheckserviciotallersolicitud"  id="loc'+value.codlocalidad+'" value="'+value.codlocalidad+'"> <label class="form-check-label col-6" for="loc'+value.codlocalidad+'">'+value.localidad+" ("+value.cp+")"+'</label><br>');
+    
+          })
+       
+          
+        }
+    }
+    })
+  }
+  else{
+    $("#localidadchek").empty();
+  }
+ 
+}
+function editartalleradmin(){
+  var regex = /^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/;
+  $tid=$("#nrotallereditar").val();
+  $nombre=$("#editarnombrenuevotaller").val();
+  $telefono=$("#editartelnuevotaller").val();
+  $email=$("#editaremailnuevotaller").val();
+  $calle=$("#editarcallenuevotaller").val();
+  $nro=$("#editarnumeronuevotaller").val();
+  $codloca=$("input[name='editarcheckserviciotallersolicitud']:checked").val();
+  $uid=$("#editarseleccionadministrador").val();
+
+  if($nombre==""){
+    swal({
+      title: "Error!",
+      text: "Debe ingresar un nombre",
+      icon: "error",
+      dangerMode: true,
+    })
+  }
+  else{
+    if($telefono=="" || !$.isNumeric($telefono)){
+      swal({
+        title: "Error!",
+        text: "Debe ingresar un telefono correcto",
+        icon: "error",
+        dangerMode: true,
+      })
+  
+    }
+    else{
+      if(!regex.test($email)){
+        swal({
+          title: "Error!",
+          text: "Debe ingresar un email correcto",
+          icon: "error",
+          dangerMode: true,
+        })
+  
+      }
+      else{
+        if($calle==""){
+          swal({
+            title: "Error!",
+            text: "Debe indicar una calle",
+            icon: "error",
+            dangerMode: true,
+          })
+        }
+        else{
+          if($nro==""){
+            swal({
+              title: "Error!",
+              text: "Debe indicar una altura",
+              icon: "error",
+              dangerMode: true,
+            })
+          }
+          else{
+            if($codloca=="" && $("#editartallerlocalidad").val()!=""){
+              swal({
+                title: "Error!",
+                text: "Debe seleccionar una localidad",
+                icon: "error",
+                dangerMode: true,
+              })
+            }
+            else{
+              if($uid==""){
+                swal({
+                  title: "Error!",
+                  text: "Debe seleccionar un Administrador",
+                  icon: "error",
+                  dangerMode: true,
+                })
+              }
+              else{
+                  if($("#editartallerlocalidad").val()!=""){
+                    console.log("entro en sin")
+                    $.ajax({
+                      url: "../clases/tabla.php",
+                      method: "GET",
+                      async: true,
+                      data: {funcion: "editarnuevotallersinloca",tid:$tid,nombre:$nombre,telefono:$telefono,email:$email,calle:$calle,nro:$nro,uid:$uid},
+                      dataType: "json",
+                      success: function(respuesta) {
+                        if(respuesta){ 
+                          cargartalleresadministrador();
+                          swal({
+                            title: "Actualizo con exito!",
+                            text: "Se ah actualizo con exito el Taller",
+                            icon: "success",
+                            dangerMode: true,
+                          })
+                          $(".modal .close").click();
+                          cargartalleresadministrador();
+                                               
+                  
+                        }
+                        else{
+                          console.log("salio error")
+                        } 
+                      
+                      }
+                    })
+                   
+                    }
+                  else{
+                    console.log("entro en con")
+            
+                    $.ajax({              
+                      url: "../clases/tabla.php",
+                      method: "GET",
+                      async: true,
+                      data: {funcion: "editarnuevotaller",tid:$tid,nombre:$nombre,telefono:$telefono,email:$email,calle:$calle,nro:$nro,codloca:$codloca,uid:$uid},
+                      dataType: "json",
+                      success: function(respuesta) {
+                        if(respuesta){ 
+                          cargartalleresadministrador();
+                          swal({
+                            title: "Actualizo con exito!",
+                            text: "Se actualizo con exito el Taller",
+                            icon: "success",
+                            dangerMode: true,
+                          })
+                          $(".modal .close").click();
+                          cargartalleresadministrador();
+                                               
+                  
+                        }
+                        else{
+                          console.log("salio error")
+                        } 
+                      
+                      }
+                    })
+                  }
+                
+              }
+            }
+          }
+        }
+      }
+    }
+    }
+  }
+
+function eliminartalleradm($tid){
+  
+  swal({
+    title: "¿Quiere eliminar el Taller?",
+    text: "Una vez eliminado, Tendra que crear lo de nuevo",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      $.ajax({
+        url: "../clases/tabla.php",
+        method: "GET",
+        async: true,
+        data: {funcion: "eliminartaller",tid:$tid},
+        dataType: "json",
+        success: function(respuesta) {
+            if(respuesta){
+              cargartalleresadministrador();
+              swal({
+                title:"Listo!",
+                text:"se elimino el taller", 
+                icon: "success",
+              });
+              
+          }
+      }
+      })
+      
+    } else {
+      swal({   
+          title:"!Cancelado¡", 
+            icon: "error"});
+    }
+  });
+  
+}
+  
+
+//sin
+ 
